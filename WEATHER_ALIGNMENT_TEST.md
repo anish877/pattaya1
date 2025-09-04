@@ -24,13 +24,13 @@ This guide helps verify that the backend schema, frontend interface, and recomme
 ### Step 1: Backend API Test
 ```bash
 # Test weather settings
-curl http://localhost:1337/api/weather/settings
+curl https://api.pattaya1.com/api/weather/settings
 
 # Test weather current data
-curl "http://localhost:1337/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
+curl "https://api.pattaya1.com/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
 
 # Test weather suggestions
-curl "http://localhost:1337/api/weather/suggestions?condition=sunny"
+curl "https://api.pattaya1.com/api/weather/suggestions?condition=sunny"
 ```
 
 **Expected Response Structure:**
@@ -63,7 +63,7 @@ curl "http://localhost:1337/api/weather/suggestions?condition=sunny"
 2. **Check environment variables:**
    ```bash
    # In pattaya1/.env.local
-   NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+   NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
    ```
 
 3. **Open browser console** and navigate to homepage

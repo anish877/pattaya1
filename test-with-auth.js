@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 // Load environment variables
 require('dotenv').config();
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'https://api.pattaya1.com';
 
 async function testWithAuth() {
   console.log('🔍 Testing with Authentication...\n');

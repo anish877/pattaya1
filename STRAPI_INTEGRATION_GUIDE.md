@@ -20,7 +20,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 
 # Strapi Configuration
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
 
 # JWT Secret (for email verification)
 JWT_SECRET=your-jwt-secret-key
@@ -36,7 +36,7 @@ JWT_SECRET=your-jwt-secret-key
 ### 3. Strapi Configuration
 
 1. Make sure your Strapi backend is running
-2. For production, replace `http://localhost:1337` with your Strapi Cloud URL
+2. For production, replace `https://api.pattaya1.com` with your Strapi Cloud URL
 3. Ensure the Firebase Authentication middleware is properly configured
 
 ## 🔄 **How It Works**

@@ -125,7 +125,7 @@ export function EnhancedWeatherWidget({ isExpanded = false, onToggleExpand }: { 
 
   const loadSettings = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/weather-settings'))
+      const response = await fetch(buildApiUrl('/weather-settings'))
       if (response.ok) {
         const data = await response.json()
         setSettings(data.data.attributes)
@@ -165,7 +165,7 @@ export function EnhancedWeatherWidget({ isExpanded = false, onToggleExpand }: { 
       const lon = location?.lon || settings.defaultLongitude
       
       // Try to fetch from the weather API endpoint
-      const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}&units=${units}`)
+      const response = await fetch(buildApiUrl(`/weather?lat=${lat}&lon=${lon}&units=${units}`))
       if (response.ok) {
         const data = await response.json()
         setWeather(data)
@@ -247,7 +247,7 @@ export function EnhancedWeatherWidget({ isExpanded = false, onToggleExpand }: { 
     
     setSuggestionsLoading(true)
     try {
-      const response = await fetch(buildApiUrl('/api/weather-suggestions'), {
+      const response = await fetch(buildApiUrl('/weather-suggestions'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

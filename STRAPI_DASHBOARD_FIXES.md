@@ -11,7 +11,7 @@ After analyzing the schema very deeply, here are the **exact issues** and **what
 **Problem**: The `owner` field exists in the schema file but Strapi runtime doesn't recognize it.
 
 **What to do in Strapi Dashboard**:
-1. **Go to**: http://localhost:1337/admin
+1. **Go to**: https://api.pattaya1.com/admin
 2. **Navigate to**: Content-Type Builder → Business
 3. **Click**: "Edit" on the Business content type
 4. **Check if you see the "owner" field** in the interface

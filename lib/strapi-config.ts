@@ -1,9 +1,9 @@
 // Strapi configuration and URL utilities
 export const STRAPI_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337",
+  baseUrl: process.env.NEXT_PUBLIC_STRAPI_URL || "https://api.pattaya1.com",
   apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL 
     ? `${process.env.NEXT_PUBLIC_STRAPI_URL}/api` 
-    : "http://localhost:1337/api",
+    : "https://api.pattaya1.com/api",
 }
 
 // Helper function to build full URLs for Strapi assets

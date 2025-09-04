@@ -8,7 +8,7 @@ All hardcoded `localhost:1337` URLs have been replaced with environment variable
 ### Required Variables
 ```bash
 # Strapi Configuration
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
 
 # For production, use your Strapi Cloud URL:
 # NEXT_PUBLIC_STRAPI_URL=https://your-strapi-app.strapiapp.com
@@ -29,7 +29,7 @@ SENDGRID_API_KEY=your-sendgrid-api-key
 ADMIN_EMAIL=admin@yourdomain.com
 
 # Admin URL (for Strapi admin panel)
-ADMIN_URL=http://localhost:1337
+ADMIN_URL=https://api.pattaya1.com
 ```
 
 ## Files Updated
@@ -57,7 +57,7 @@ import { buildStrapiUrl } from "@/lib/strapi-config"
 
 // Example usage
 const imageUrl = buildStrapiUrl("/uploads/image.jpg")
-// Result: "http://localhost:1337/uploads/image.jpg" (or your production URL)
+// Result: "https://api.pattaya1.com/uploads/image.jpg" (or your production URL)
 ```
 
 ### `buildApiUrl(endpoint: string)`
@@ -67,7 +67,7 @@ import { buildApiUrl } from "@/lib/strapi-config"
 
 // Example usage
 const apiUrl = buildApiUrl("news-articles?populate=*")
-// Result: "http://localhost:1337/api/news-articles?populate=*" (or your production URL)
+// Result: "https://api.pattaya1.com/api/news-articles?populate=*" (or your production URL)
 ```
 
 ## Setup Instructions
@@ -76,7 +76,7 @@ const apiUrl = buildApiUrl("news-articles?populate=*")
 Create a `.env.local` file in your project root:
 ```bash
 # Development
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
 
 # Production (replace with your actual Strapi URL)
 # NEXT_PUBLIC_STRAPI_URL=https://your-strapi-app.strapiapp.com
@@ -85,7 +85,7 @@ NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
 ### 2. Update Strapi Configuration
 In your Strapi project, update the admin URL in `config/plugins.js`:
 ```javascript
-'admin-url': env('ADMIN_URL', 'http://localhost:1337'),
+'admin-url': env('ADMIN_URL', 'https://api.pattaya1.com'),
 ```
 
 ### 3. Restart Development Server

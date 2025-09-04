@@ -32,9 +32,9 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
 
 # Strapi Configuration
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-STRAPI_URL=http://localhost:1337
-NEXT_PUBLIC_API_URL=http://localhost:1337/api
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
+STRAPI_URL=https://api.pattaya1.com
+NEXT_PUBLIC_API_URL=https://api.pattaya1.com/api
 
 # JWT Configuration
 JWT_SECRET=your-jwt-secret-key
@@ -82,7 +82,7 @@ SMTP_FROM=your_email@gmail.com
    ```bash
    echo "STRIPE_SECRET_KEY=sk_test_placeholder" >> .env.local
    echo "STRIPE_WEBHOOK_SECRET=whsec_placeholder" >> .env.local
-   echo "NEXT_PUBLIC_STRAPI_URL=http://localhost:1337" >> .env.local
+   echo "NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com" >> .env.local
    ```
 
 3. **Restart your development server**:

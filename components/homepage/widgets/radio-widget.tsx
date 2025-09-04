@@ -571,7 +571,7 @@ export function RadioWidget({ className, isExpanded = false, onToggleExpand }: {
   const loadSponsoredBanner = async () => {
     try {
       // Load global homepage sponsorship configuration from Strapi
-      const response = await fetch('/api/homepage-configs/active')
+      const response = await fetch(buildApiUrl('/homepage-configs/active'))
       if (response.ok) {
         const data = await response.json()
         if (data.data?.globalSponsorship) {

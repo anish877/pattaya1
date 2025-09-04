@@ -4,7 +4,7 @@ Create a `.env.local` file in your project root with the following content:
 
 ```env
 # Strapi Backend API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:1337/api
+NEXT_PUBLIC_API_URL=https://api.pattaya1.com/api
 
 # Firebase Configuration (if needed)
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
@@ -18,7 +18,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 
 1. Create the environment file:
 ```bash
-echo "NEXT_PUBLIC_API_URL=http://localhost:1337/api" > .env.local
+echo "NEXT_PUBLIC_API_URL=https://api.pattaya1.com/api" > .env.local
 ```
 
 2. Start the development server:

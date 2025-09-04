@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js build output
+.next
+out
+
+# Production
+build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# Env files (provide via Docker secrets or env vars)
+.env
+.env*.local
+
+# Editor
+.vscode
+.idea
+*.swp

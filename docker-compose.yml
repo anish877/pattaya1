@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  web:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pattaya1-web:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Add or override your env vars here, or use an .env file next to this compose
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Example STRAPI endpoints or keys could go here; prefer Docker secrets in real deployments
+      # - STRAPI_API_URL=https://api.example.com
+    env_file:
+      - .env
+    # If you need persistent data for any runtime cache, uncomment volumes
+    # volumes:
+    #   - ./.next/cache:/app/.next/cache
+    #   - ./public:/app/public:ro
+    #   - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+        reservations:
+          memory: 256M

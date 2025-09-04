@@ -5,7 +5,7 @@
 Create a `.env.local` file in your project root with:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:1337/api
+NEXT_PUBLIC_API_URL=https://api.pattaya1.com/api
 ```
 
 ## Available Routes
@@ -33,7 +33,7 @@ node scripts/test-news-connection.js
 
 ## Next Steps
 
-1. Ensure Strapi backend is running on `http://localhost:1337`
+1. Ensure Strapi backend is running on `https://api.pattaya1.com`
 2. Set up the breaking news content type in Strapi admin
 3. Add the environment variable
 4. Start the frontend: `npm run dev`

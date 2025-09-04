@@ -7,14 +7,14 @@ This document outlines all the environment variables that should be used instead
 ### Strapi Configuration
 ```bash
 # Replace localhost:1337 with your actual Strapi backend URL
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-STRAPI_URL=http://localhost:1337
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
+STRAPI_URL=https://api.pattaya1.com
 
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:1337/api
+NEXT_PUBLIC_API_URL=https://api.pattaya1.com/api
 
 # Strapi Admin Configuration
-ADMIN_URL=http://localhost:1337
+ADMIN_URL=https://api.pattaya1.com
 ```
 
 ### Firebase Configuration
@@ -127,7 +127,7 @@ require('dotenv').config();
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 
                    process.env.STRAPI_URL || 
-                   'http://localhost:1337';
+                   'https://api.pattaya1.com';
 
 const response = await fetch(`${STRAPI_URL}/api/businesses`);
 ```

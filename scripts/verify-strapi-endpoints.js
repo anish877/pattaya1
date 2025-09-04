@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 async function verifyAllEndpoints() {
-  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'http://localhost:1337';
+  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'https://api.pattaya1.com';
   const API_BASE = `${STRAPI_URL}/api`;
   
   console.log('🔍 Verifying All Required Strapi Endpoints...\n');

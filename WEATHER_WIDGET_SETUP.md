@@ -38,7 +38,7 @@ WEATHER_UPDATE_FREQUENCY=30
 Create/update your Next.js `.env.local`:
 ```bash
 # Strapi API URL (REQUIRED - This is the key fix!)
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com
 
 # Optional: Weather widget settings
 NEXT_PUBLIC_WEATHER_ENABLED=true
@@ -82,9 +82,9 @@ The weather widget is already integrated in:
 node test-weather-api.js
 
 # Or test individually with curl
-curl http://localhost:1337/api/weather/settings
-curl "http://localhost:1337/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
-curl "http://localhost:1337/api/weather/suggestions?condition=sunny"
+curl https://api.pattaya1.com/api/weather/settings
+curl "https://api.pattaya1.com/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
+curl "https://api.pattaya1.com/api/weather/suggestions?condition=sunny"
 ```
 
 ### Test Frontend
@@ -97,10 +97,10 @@ curl "http://localhost:1337/api/weather/suggestions?condition=sunny"
 ### Quick Connection Test
 ```bash
 # Test if Strapi is accessible
-curl http://localhost:1337/api/weather/settings
+curl https://api.pattaya1.com/api/weather/settings
 
 # Test if weather endpoint works
-curl "http://localhost:1337/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
+curl "https://api.pattaya1.com/api/weather/current?lat=12.9236&lon=100.8825&units=metric"
 ```
 
 ## 📱 Features Status
@@ -168,7 +168,7 @@ Error: Unable to load weather data
 GET http://localhost:3000/api/weather/settings 404 (Not Found)
 GET http://localhost:3000/api/weather/current 404 (Not Found)
 ```
-**Solution**: This means the frontend is calling the wrong server. Add `NEXT_PUBLIC_STRAPI_URL=http://localhost:1337` to your `.env.local` file.
+**Solution**: This means the frontend is calling the wrong server. Add `NEXT_PUBLIC_STRAPI_URL=https://api.pattaya1.com` to your `.env.local` file.
 
 #### 4. Location Permission Denied
 ```
