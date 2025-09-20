@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     
     try {
       // Fetch regular breaking news
-      const localApiUrl = ` https://api.pattaya1.com/api/breaking-news/live`
+      const localApiUrl = ` http://localhost:1337/api/breaking-news/live`
       console.log('Fetching breaking news from:', localApiUrl)
       const newsResponse = await fetch(localApiUrl, {
         headers: {
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       }
       
       // Fetch pinned news from Strapi backend - check both isPinned and pinnedAt fields
-      const pinnedApiUrl = ` https://api.pattaya1.com/api/breaking-news-plural?populate=*&filters[$or][0][isPinned][$eq]=true&filters[$or][1][pinnedAt][$notNull]=true&sort=PublishedTimestamp:desc`
+      const pinnedApiUrl = ` http://localhost:1337/api/breaking-news-plural?populate=*&filters[$or][0][isPinned][$eq]=true&filters[$or][1][pinnedAt][$notNull]=true&sort=PublishedTimestamp:desc`
       console.log('Fetching pinned news from:', pinnedApiUrl)
       const pinnedResponse = await fetch(pinnedApiUrl, {
         headers: {
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     // Create sponsored posts with proper sponsor names
     let sponsoredData = []
     try {
-      const localSponsoredUrl = ` https://api.pattaya1.com/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
+      const localSponsoredUrl = ` http://localhost:1337/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
       console.log('Fetching sponsored posts from:', localSponsoredUrl)
       const sponsoredResponse = await fetch(localSponsoredUrl, {
         headers: {

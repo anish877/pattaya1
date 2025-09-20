@@ -118,7 +118,7 @@ function ModernRestaurantCard({ restaurant, onBook }: { restaurant: Restaurant; 
 
   return (
     <Card 
-      className="group overflow-hidden bg-white/80 backdrop-blur-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-700 relative"
+      className="group overflow-hidden bg-white/80 backdrop-blur-xl border-0 shadow-lg hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-[1.02] relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -135,7 +135,7 @@ function ModernRestaurantCard({ restaurant, onBook }: { restaurant: Restaurant; 
         <img 
           src={restaurant.image} 
           alt={restaurant.name} 
-          className={`w-full h-full object-cover transition-transform duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImageLoaded(true)}
         />
         
@@ -568,7 +568,7 @@ export function FoodWidget({ theme = "primary" }: FoodWidgetProps) {
           backdrop-blur-xl rounded-2xl overflow-hidden
           shadow-xl border border-white/20 cursor-pointer group
           transition-all duration-500
-          hover:shadow-2xl
+          hover:shadow-2xl hover:scale-[1.03]
         `}
         onClick={() => setShowExpandedModal(true)}
       >

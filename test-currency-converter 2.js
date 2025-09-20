@@ -8,7 +8,7 @@
 const axios = require('axios');
 
 // Configuration
-const STRAPI_URL = process.env.STRAPI_URL || ' https://api.pattaya1.com';
+const STRAPI_URL = process.env.STRAPI_URL || ' http://localhost:1337';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Test colors

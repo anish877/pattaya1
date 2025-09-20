@@ -168,77 +168,85 @@ export function YouTubeWidget() {
   }
 
   return (
-    <Card className="h-full bg-white border border-neutral-200/60 shadow-sm rounded-xl overflow-hidden flex flex-col">
-      <CardHeader className="p-3 flex-shrink-0 border-b border-neutral-200/60 bg-neutral-50">
+    <Card className="h-full bg-gradient-to-br from-red-50 via-orange-50 to-pink-50 border-0 shadow-lg rounded-2xl overflow-hidden flex flex-col">
+      <CardHeader className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-6 flex-shrink-0">
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-red-600 rounded-md">
-              <Play className="h-4 w-4 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+              <Play className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900">Featured Videos</h3>
-              <p className="text-[11px] text-neutral-500">Latest from YouTube</p>
+              <h3 className="text-xl font-semibold text-white">Featured Videos</h3>
+              <p className="text-sm text-red-100 font-medium">Discover amazing content</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-neutral-100 rounded-md">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-            <span className="text-[11px] font-medium text-neutral-700">{videos.length}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-xl backdrop-blur-sm">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-white">{videos.length} Videos</span>
           </div>
         </CardTitle>
       </CardHeader>
-
-      <CardContent className="p-3 space-y-3 flex-1 overflow-hidden">
+    
+      <CardContent className="p-6 space-y-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-red-100/50 max-h-96">
         {/* Featured Video Section - Shows first 2 videos */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-3 bg-red-600 rounded-full"></div>
-            <h3 className="text-sm font-semibold text-neutral-900">Featured</h3>
+            <div className="w-1 h-6 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-gray-900">Featured Content</h3>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {videos.slice(0, 2).map((video, index) => (
               <div
                 key={video.id}
-                className="group cursor-pointer bg-white rounded-lg overflow-hidden border border-neutral-200/60 shadow-sm hover:shadow-md transition-all duration-200"
+                className="group cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 shadow-lg hover:shadow-xl hover:border-white/80 transition-all duration-200 hover:scale-[1.01]"
                 onClick={() => handleVideoClick(video.videoId)}
               >
                 <div className="relative">
                   <img
                     src={video.thumbnailUrl ? buildStrapiUrl(video.thumbnailUrl) : "https://via.placeholder.com/320x180/1f2937/ffffff?text=Pattaya+Video"}
                     alt={video.title}
-                    className="w-full h-24 object-cover"
+                    className="w-full h-40 object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200 flex items-center justify-center">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                      <Play className="w-4 h-4 text-red-600" />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                    <div className="w-14 h-14 bg-white bg-opacity-95 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                      <Play className="w-6 h-6 text-red-500 fill-current ml-0.5" />
                     </div>
                   </div>
-                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded-md font-medium">
+                  <div className="absolute bottom-3 right-3 bg-black bg-opacity-80 text-white text-xs px-3 py-1.5 rounded-xl font-medium">
                     {video.duration}
                   </div>
+                  {video.promoted && (
+                    <div className="absolute top-3 left-3">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded-xl shadow-sm">
+                        <TrendingUp className="w-3 h-3" />
+                        Promoted
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="p-2.5">
-                  <h4 className="font-semibold text-[13px] text-neutral-900 line-clamp-2 mb-1 group-hover:text-red-600 transition-colors leading-tight">
+                <div className="p-5">
+                  <h4 className="font-semibold text-base text-gray-900 line-clamp-2 mb-3 group-hover:text-red-600 transition-colors leading-tight">
                     {video.title}
                   </h4>
                   
-                  <div className="flex items-center justify-between text-[11px] text-neutral-500 mb-1">
-                    <span className="font-medium text-neutral-700 truncate">{video.channelName}</span>
-                    <span className="font-medium whitespace-nowrap">{video.publishedAt}</span>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <span className="font-semibold text-gray-700">{video.channelName}</span>
+                    <span className="font-medium">{video.publishedAt}</span>
                   </div>
                   
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 rounded">
-                      <Eye className="w-3 h-3 text-neutral-600" />
-                      <span className="font-medium text-neutral-700">{formatNumber(video.viewCount)}</span>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl shadow-sm">
+                      <Eye className="w-4 h-4 text-gray-600" />
+                      <span className="font-medium text-gray-700">{formatNumber(video.viewCount)}</span>
                     </div>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 rounded">
-                      <ThumbsUp className="w-3 h-3 text-neutral-700" />
-                      <span className="font-medium text-neutral-700">{formatNumber(video.likeCount)}</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 rounded-xl shadow-sm">
+                      <ThumbsUp className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-blue-700">{formatNumber(video.likeCount)}</span>
                     </div>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 rounded">
-                      <MessageCircle className="w-3 h-3 text-neutral-700" />
-                      <span className="font-medium text-neutral-700">{formatNumber(video.comments)}</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-green-200 rounded-xl shadow-sm">
+                      <MessageCircle className="w-4 h-4 text-green-600" />
+                      <span className="font-medium text-green-700">{formatNumber(video.comments)}</span>
                     </div>
                   </div>
                 </div>
@@ -249,11 +257,11 @@ export function YouTubeWidget() {
 
         {/* View All Button */}
         <Button 
-          className="w-full text-[11px] font-medium bg-red-600 text-white hover:bg-red-700 transition-colors rounded-md py-1.5"
+          className="w-full text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl rounded-xl py-3 transform hover:-translate-y-0.5"
           onClick={() => window.open('https://www.youtube.com/results?search_query=pattaya', '_blank')}
         >
-          <ExternalLink className="w-3 h-3 mr-1" />
-          View on YouTube
+          <ExternalLink className="w-4 h-4 mr-2" />
+          View All Pattaya Videos
         </Button>
       </CardContent>
     </Card>

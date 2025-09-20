@@ -77,22 +77,22 @@ export function GlobalSponsorshipAdmin() {
   const loadCurrentSponsorship = async () => {
     try {
       setLoading(true)
-      const response = await fetch(buildApiUrl('global-sponsorships?filters[isActive][$eq]=true&sort=createdAt:desc&pagination[limit]=1&populate=*'))
+      const response = await fetch(`${buildApiUrl('')}/global-sponsorships?filters[isActive][$eq]=true&sort=createdAt:desc&pagination[limit]=1&populate=*`)
       if (response.ok) {
         const data = await response.json()
         if (data.data && data.data.length > 0) {
           const sponsorshipData = data.data[0]
           setSponsorship({
             id: sponsorshipData.id,
-            sponsorshipTitles: sponsorshipData.attributes?.sponsorshipTitles || [],
-            isActive: sponsorshipData.attributes?.isActive || false,
-            sponsoredWidgets: sponsorshipData.attributes?.sponsoredWidgets || [],
-            defaultColor: sponsorshipData.attributes?.defaultColor || "#1e40af",
-            animationSpeed: sponsorshipData.attributes?.animationSpeed || "normal",
-            sponsorWebsite: sponsorshipData.attributes?.sponsorWebsite || "",
-            sponsorLogo: sponsorshipData.attributes?.sponsorLogo || "",
-            sponsorStartDate: sponsorshipData.attributes?.sponsorStartDate || "",
-            sponsorEndDate: sponsorshipData.attributes?.sponsorEndDate || ""
+            sponsorshipTitles: sponsorshipData.attributes.sponsorshipTitles || [],
+            isActive: sponsorshipData.attributes.isActive,
+            sponsoredWidgets: sponsorshipData.attributes.sponsoredWidgets || [],
+            defaultColor: sponsorshipData.attributes.defaultColor || "#1e40af",
+            animationSpeed: sponsorshipData.attributes.animationSpeed || "normal",
+            sponsorWebsite: sponsorshipData.attributes.sponsorWebsite || "",
+            sponsorLogo: sponsorshipData.attributes.sponsorLogo || "",
+            sponsorStartDate: sponsorshipData.attributes.sponsorStartDate || "",
+            sponsorEndDate: sponsorshipData.attributes.sponsorEndDate || ""
           })
         }
       }
@@ -112,25 +112,6 @@ export function GlobalSponsorshipAdmin() {
     try {
       setSaving(true)
       
-      // Validate required fields
-      if (sponsorship.isActive && sponsorship.sponsorshipTitles.length === 0) {
-        toast({
-          title: "Validation Error",
-          description: "Please add at least one sponsorship title when sponsorship is active",
-          variant: "destructive"
-        })
-        return
-      }
-      
-      if (sponsorship.isActive && sponsorship.sponsorshipTitles.some(title => !title.title.trim())) {
-        toast({
-          title: "Validation Error",
-          description: "All sponsorship titles must have text",
-          variant: "destructive"
-        })
-        return
-      }
-      
       const payload = {
         data: {
           sponsorshipTitles: sponsorship.sponsorshipTitles,
@@ -138,17 +119,17 @@ export function GlobalSponsorshipAdmin() {
           sponsoredWidgets: sponsorship.sponsoredWidgets,
           defaultColor: sponsorship.defaultColor,
           animationSpeed: sponsorship.animationSpeed,
-          sponsorWebsite: sponsorship.sponsorWebsite || null,
-          sponsorLogo: sponsorship.sponsorLogo || null,
-          sponsorStartDate: sponsorship.sponsorStartDate || null,
-          sponsorEndDate: sponsorship.sponsorEndDate || null
+          sponsorWebsite: sponsorship.sponsorWebsite,
+          sponsorLogo: sponsorship.sponsorLogo,
+          sponsorStartDate: sponsorship.sponsorStartDate,
+          sponsorEndDate: sponsorship.sponsorEndDate
         }
       }
 
       let response
       if (sponsorship.id) {
         // Update existing
-        response = await fetch(buildApiUrl(`global-sponsorships/${sponsorship.id}`), {
+        response = await fetch(`${buildApiUrl()}/global-sponsorships/${sponsorship.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -157,7 +138,7 @@ export function GlobalSponsorshipAdmin() {
         })
       } else {
         // Create new
-        response = await fetch(buildApiUrl('global-sponsorships'), {
+        response = await fetch(`${buildApiUrl()}/global-sponsorships`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -168,14 +149,13 @@ export function GlobalSponsorshipAdmin() {
 
       if (response.ok) {
         const result = await response.json()
-        setSponsorship(prev => ({ ...prev, id: result.data?.id }))
+        setSponsorship(prev => ({ ...prev, id: result.data.id }))
         toast({
           title: "Success",
           description: "Global sponsorship settings updated successfully",
         })
       } else {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Failed to update sponsorship: ${response.status}`)
+        throw new Error('Failed to update sponsorship')
       }
     } catch (error) {
       console.error('Error saving sponsorship:', error)
@@ -536,7 +516,7 @@ export function GlobalSponsorshipAdmin() {
         <div className="flex justify-end pt-4 border-t">
           <Button
             onClick={saveSponsorship}
-            disabled={saving || (sponsorship.isActive && (sponsorship.sponsorshipTitles.length === 0 || sponsorship.sponsorshipTitles.some(title => !title.title.trim())))}
+            disabled={saving || sponsorship.sponsorshipTitles.length === 0 || sponsorship.sponsorshipTitles.some(title => !title.title.trim())}
             className="flex items-center gap-2"
           >
             {saving ? (

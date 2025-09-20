@@ -91,7 +91,7 @@ export function VoteButton({ article, onVoteUpdate }: VoteButtonProps) {
       try {
         // Always make API call, even for toggle off
         const endpoint = newUserVote || 'remove-vote';
-        const response = await fetch(` https://api.pattaya1.com/api/breaking-news/${articleId}/${endpoint}`, {
+        const response = await fetch(` http://localhost:1337/api/breaking-news/${articleId}/${endpoint}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

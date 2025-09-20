@@ -112,7 +112,7 @@ export default function WebSearchWidget() {
 
   const loadSuggestions = async (searchQuery: string) => {
     try {
-      const response = await fetch(` https://api.pattaya1.com/api/web-search/suggestions?query=${encodeURIComponent(searchQuery)}`)
+      const response = await fetch(` http://localhost:1337/api/web-search/suggestions?query=${encodeURIComponent(searchQuery)}`)
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
@@ -130,7 +130,7 @@ export default function WebSearchWidget() {
 
     setLoading(true)
     try {
-      const response = await fetch(` https://api.pattaya1.com/api/web-search?query=${encodeURIComponent(searchQuery)}&page=${page}&num=8`)
+      const response = await fetch(` http://localhost:1337/api/web-search?query=${encodeURIComponent(searchQuery)}&page=${page}&num=8`)
       if (response.ok) {
         const data: WebSearchResponse = await response.json()
         if (data.success) {
@@ -153,7 +153,7 @@ export default function WebSearchWidget() {
 
     setLoading(true)
     try {
-      const response = await fetch(` https://api.pattaya1.com/api/web-search/images?query=${encodeURIComponent(searchQuery)}&num=8&imgSize=medium`)
+      const response = await fetch(` http://localhost:1337/api/web-search/images?query=${encodeURIComponent(searchQuery)}&num=8&imgSize=medium`)
       if (response.ok) {
         const data = await response.json()
         if (data.success) {

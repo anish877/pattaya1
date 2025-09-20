@@ -24,7 +24,9 @@ import { TrendingWidget } from "./widgets/trending-widget"
 import { ForumActivityWidget } from "./widgets/forum-activity-widget"
 import { EventsCalendarWidget } from "./widgets/events-calendar-widget"
 import { TrafficWidget } from "./widgets/traffic-widget"
+import { NewsHeroWidget } from "./widgets/news-hero-widget"
 import { GoogleReviewsWidget } from "../widgets/google-reviews-widget"
+import { CuratorSocialWidget } from "../widgets/curator-social-widget"
 import { CurrencyConverterWidget } from "../widgets/currency-converter-widget"
 import { EnhancedHotDealsWidget } from "./widgets/enhanced-hot-deals-widget"
 import { ScrollingMarquee } from "./scrolling-marquee"
@@ -751,6 +753,7 @@ export function DynamicModularHomepage() {
       weather: EnhancedWeatherWidget,
       radio: RadioWidget,
       "google-reviews": GoogleReviewsWidget,
+      "news-hero": NewsHeroWidget,
       youtube: YouTubeWidget,
       "social-feed": SocialFeedWidget,
       trending: TrendingWidget,
@@ -759,6 +762,7 @@ export function DynamicModularHomepage() {
       "events-calendar": EventsCalendarWidget,
       "forum-activity": ForumActivityWidget,
       "photo-gallery": PhotoGalleryWidget,
+      "curator-social": CuratorSocialWidget,
       "currency-converter": CurrencyConverterWidget,
       "live-events": LiveEventsWidget,
       "quick-links": QuickLinksWidget,
