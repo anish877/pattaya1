@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
     // Try to get dynamic trending topics from recent news
     try {
-      const newsResponse = await fetch(` https://api.pattaya1.com/api/breaking-news-plural?populate=*&sort=PublishedTimestamp:desc&pagination[limit]=20`, {
+      const newsResponse = await fetch(` http://localhost:1337/api/breaking-news-plural?populate=*&sort=PublishedTimestamp:desc&pagination[limit]=20`, {
         headers: { 'Accept': 'application/json' }
       })
       

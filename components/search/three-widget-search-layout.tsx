@@ -20,7 +20,7 @@ export default function ThreeWidgetSearchLayout({ variant = 'compact' }: ThreeWi
   }
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-6">
       {/* Travel Search Only - Site and Web search are in unified search above */}
       <div className="w-full">
         {/* Travel Search Widget */}

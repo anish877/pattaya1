@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { buildApiUrl } from "@/lib/strapi-config"
 import { SponsorshipBanner } from "@/components/widgets/sponsorship-banner"
@@ -93,11 +94,7 @@ interface WeatherSettings {
   sponsorLogo?: string
 }
 
-interface WeatherWidgetProps {
-  onExpand?: () => void
-}
-
-export function WeatherWidget({ onExpand }: WeatherWidgetProps = {}) {
+export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -369,13 +366,8 @@ export function WeatherWidget({ onExpand }: WeatherWidgetProps = {}) {
   )
 
   const handleCardClick = () => {
-    console.log('Weather card clicked, expanding at homepage level...')
-    if (onExpand) {
-      onExpand()
-    } else {
-      // Fallback to internal modal if no onExpand prop provided
-      setIsModalOpen(true)
-    }
+    console.log('Weather card clicked, opening modal...')
+    setIsModalOpen(true)
   }
 
   return (
@@ -521,36 +513,27 @@ export function WeatherWidget({ onExpand }: WeatherWidgetProps = {}) {
         </CardContent>
       </Card>
 
-      {/* Weather Modal - Full Screen */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-screen h-screen max-w-none max-h-none bg-white overflow-y-auto flex flex-col"
-          >
-            <div className="p-6 relative border-b border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    {getWeatherIcon(weather.current.condition, "h-8 w-8")}
-                    <span className="text-2xl font-semibold text-gray-900">Weather Details</span>
-                  </div>
-                  {hasAlerts && (
-                    <Badge className="bg-red-500 text-white text-xs px-2 py-1">
-                      ⚠️ Weather Alert
-                    </Badge>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setIsModalOpen(false)} 
-                  className="h-8 w-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {/* Weather Modal */}
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        console.log('Modal state changing to:', open)
+        setIsModalOpen(open)
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto z-[9999]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {getWeatherIcon(weather.current.condition, "h-8 w-8")}
+                <span>Weather Details</span>
               </div>
-            </div>
+              {hasAlerts && (
+                <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                  ⚠️ Weather Alert
+                </Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="p-6 space-y-6 flex-1">
+          <div className="space-y-6">
             {/* Current Weather Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
               <div className="text-center">
@@ -776,14 +759,13 @@ export function WeatherWidget({ onExpand }: WeatherWidgetProps = {}) {
 
             {/* Footer */}
             <Separator />
-            <div className="flex items-center justify-between text-sm text-gray-500 p-6">
+            <div className="flex items-center justify-between text-sm text-gray-500">
               <div>Data from {weather.source}</div>
               <div>Last updated: {formatTime(new Date(weather.lastUpdated))}</div>
             </div>
           </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

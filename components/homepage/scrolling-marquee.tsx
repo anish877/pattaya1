@@ -27,7 +27,6 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import UnifiedSearchWidget from "@/components/search/unified-search-widget"
 
 interface MarqueeItem {
   id: string
@@ -323,11 +322,10 @@ export function ScrollingMarquee() {
         {/* Scrolling Marquee */}
         <div className="relative overflow-hidden">
           <div
-            className={`flex space-x-3 md:space-x-4 lg:space-x-5 animate-scroll`}
+            className={`flex space-x-4 ${isHovered ? "animate-none" : "animate-scroll"}`}
             style={{
               width: "max-content",
               animationDuration: "60s",
-              animationPlayState: isHovered ? "paused" : "running",
             }}
           >
             {/* Duplicate items for seamless loop */}
@@ -340,8 +338,8 @@ export function ScrollingMarquee() {
                   key={`${item.id}-${index}`}
                   href={item.url}
                   className={`
-                    relative group cursor-pointer transform transition-all duration-300 hover:scale-[1.03]
-                    ${isActive ? "scale-[1.03] z-10" : ""}
+                    relative group cursor-pointer transform transition-all duration-300 hover:scale-105
+                    ${isActive ? "scale-105 z-10" : ""}
                     block
                   `}
                   onClick={() => handleItemClick(item)}
@@ -349,7 +347,7 @@ export function ScrollingMarquee() {
                   {/* Main Card */}
                   <div
                     className={`
-                    relative w-[240px] h-[118px] md:w-[308px] md:h-[140px] lg:w-[340px] lg:h-[150px] p-3 pt-4 rounded-2xl border backdrop-blur-xl overflow-hidden
+                    relative w-[308px] h-[140px] p-3 pt-4 rounded-2xl border backdrop-blur-xl
                     ${item.gradient} border-white/20 hover:border-white/40
                     shadow-2xl hover:shadow-3xl transition-all duration-300
                     ${isActive ? "ring-2 ring-white/50" : ""}
@@ -380,9 +378,7 @@ export function ScrollingMarquee() {
                     )}
 
                     {/* Content */}
-                    <div className="relative z-10 h-full flex flex-col">
-                      {/* Scrollable upper content */}
-                      <div className="flex-1 min-w-0 overflow-y-auto no-scrollbar pr-0.5">
+                    <div className="relative z-10 h-full flex flex-col justify-between">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -392,17 +388,13 @@ export function ScrollingMarquee() {
                             {item.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-bold text-xs md:text-sm leading-tight truncate">
-                              {item.title}
-                            </h3>
-                            <p className="text-white/80 text-[11px] md:text-xs truncate">
-                              {item.subtitle}
-                            </p>
+                            <h3 className="text-white font-bold text-sm leading-tight truncate">{item.title}</h3>
+                            <p className="text-white/80 text-xs truncate">{item.subtitle}</p>
                           </div>
                         </div>
 
                         {item.discount && (
-                          <div className="bg-yellow-400 text-black font-black text-[10px] md:text-xs px-2 py-0.5 rounded-full shadow-lg flex-shrink-0 ml-2 max-w-[30%] md:max-w-[35%] truncate">
+                          <div className="bg-yellow-400 text-black font-black text-sm px-2 py-1 rounded-full shadow-lg flex-shrink-0 ml-2">
                             {item.discount}
                           </div>
                         )}
@@ -410,7 +402,7 @@ export function ScrollingMarquee() {
 
                       {/* Stats Row */}
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2 md:space-x-3 text-white/70 text-[11px] md:text-xs flex-1 min-w-0">
+                        <div className="flex items-center space-x-3 text-white/70 text-xs flex-1 min-w-0">
                           {item.rating && (
                             <div className="flex items-center space-x-1 flex-shrink-0">
                               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -433,14 +425,14 @@ export function ScrollingMarquee() {
                           )}
                         </div>
 
-                        <Badge variant="outline" className="text-white/60 border-white/30 text-[10px] md:text-xs flex-shrink-0 max-w-[35%] md:max-w-[40%] truncate">
+                        <Badge variant="outline" className="text-white/60 border-white/30 text-xs flex-shrink-0">
                           {item.category}
                         </Badge>
                       </div>
 
                       {/* Engagement Stats */}
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2 md:space-x-3 text-white/60 text-[11px] md:text-xs min-w-0">
+                        <div className="flex items-center space-x-3 text-white/60 text-xs">
                           {item.participants && (
                             <div className="flex items-center space-x-1">
                               <Users className="w-3 h-3" />
@@ -472,36 +464,33 @@ export function ScrollingMarquee() {
 
                         {/* Countdown Timer */}
                         {item.countdown && (
-                          <div className="flex items-center space-x-1 bg-red-500/20 text-red-300 px-2 py-1 rounded-full text-[10px] md:text-xs flex-shrink-0">
+                          <div className="flex items-center space-x-1 bg-red-500/20 text-red-300 px-2 py-1 rounded-full text-xs">
                             <Timer className="w-3 h-3" />
                             <span>{formatTime(item.countdown)}</span>
                           </div>
                         )}
-                      </div>
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex items-center justify-between pt-2 border-t border-white/20">
                         <Button
                           size="sm"
-                          className={`bg-gradient-to-r ${item.color} hover:opacity-90 text-white shadow-lg text-[10px] md:text-[11px] px-2.5 py-0.5 h-6 md:h-7 max-w-[58%] md:max-w-[65%] whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0`}
+                          className={`bg-gradient-to-r ${item.color} hover:opacity-90 text-white shadow-lg text-xs px-3 py-1 h-7`}
                         >
-                          <span className="truncate">
-                            {item.type === "deal"
-                              ? "Claim Deal"
-                              : item.type === "event"
-                                ? "Join Event"
-                                : item.type === "live"
-                                  ? "Watch Live"
-                                  : "Learn More"}
-                          </span>
+                          {item.type === "deal"
+                            ? "Claim Deal"
+                            : item.type === "event"
+                              ? "Join Event"
+                              : item.type === "live"
+                                ? "Watch Live"
+                                : "Learn More"}
                         </Button>
 
-                        <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-                          <Button size="sm" variant="ghost" className="text-white/60 hover:text-white p-1 h-6 w-6 md:h-7 md:w-7">
+                        <div className="flex items-center space-x-1">
+                          <Button size="sm" variant="ghost" className="text-white/60 hover:text-white p-1 h-7 w-7">
                             <Heart className="w-3 h-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="text-white/60 hover:text-white p-1 h-6 w-6 md:h-7 md:w-7">
+                          <Button size="sm" variant="ghost" className="text-white/60 hover:text-white p-1 h-7 w-7">
                             <Share2 className="w-3 h-3" />
                           </Button>
                         </div>
@@ -519,8 +508,8 @@ export function ScrollingMarquee() {
           </div>
         </div>
 
-        {/* Bottom Stats Bar with inline tiny search */}
-        <div className="flex justify-center items-center mt-2 space-x-5 text-white/60 text-xs">
+        {/* Bottom Stats Bar */}
+        <div className="flex justify-center items-center mt-2 space-x-8 text-white/60 text-xs">
           <div className="flex items-center space-x-1">
             <Fire className="w-4 h-4 text-orange-400" />
             <span>8 Hot Deals</span>
@@ -528,10 +517,6 @@ export function ScrollingMarquee() {
           <div className="flex items-center space-x-1">
             <Zap className="w-4 h-4 text-yellow-400" />
             <span>12 Live Events</span>
-          </div>
-          {/* Tiny search inline */}
-          <div className="flex-1 min-w-[260px] max-w-[440px] w-full">
-            <UnifiedSearchWidget compact />
           </div>
           <div className="flex items-center space-x-1">
             <Crown className="w-4 h-4 text-purple-400" />

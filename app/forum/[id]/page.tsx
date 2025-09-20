@@ -151,7 +151,6 @@ export default function TopicDetailPage() {
       return
     }
 
-    
     console.log("Adding reaction:", { targetId, reactionType, isTopic, user: user.uid })
 
     try {

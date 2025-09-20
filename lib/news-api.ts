@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = ' https://api.pattaya1.com/api'
+const API_BASE = ' http://localhost:1337/api'
 
 const api = axios.create({
   baseURL: API_BASE,

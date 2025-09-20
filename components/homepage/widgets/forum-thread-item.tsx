@@ -1,11 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { MessageSquare, Clock, Eye, ThumbsUp, Heart, Smile, Frown, Angry, Laugh } from "lucide-react"
+import { MessageSquare, Clock, Eye, ThumbsUp } from "lucide-react"
 
 interface ForumThreadItemProps {
   topic: {
@@ -33,22 +30,10 @@ interface ForumThreadItemProps {
       color: string
     }
     avatar_url?: string | null
-    _originalTopic?: any // Store original topic data for reactions
   }
 }
 
 export function ForumThreadItem({ topic }: ForumThreadItemProps) {
-  const router = useRouter()
-  const [isReacting, setIsReacting] = useState(false)
-  const [reactionCounts, setReactionCounts] = useState({
-    like: topic.like_count || 0,
-    love: topic._originalTopic?.reactionCounts?.love || 0,
-    laugh: topic._originalTopic?.reactionCounts?.laugh || 0,
-    wow: topic._originalTopic?.reactionCounts?.wow || 0,
-    sad: topic._originalTopic?.reactionCounts?.sad || 0,
-    angry: topic._originalTopic?.reactionCounts?.angry || 0
-  })
-
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date()
     const time = new Date(timestamp)
@@ -73,60 +58,12 @@ export function ForumThreadItem({ topic }: ForumThreadItemProps) {
       .slice(0, 2)
   }
 
-  const handleTopicClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    // Navigate to the forum topic page
-    router.push(`/forum/${topic.id}`)
-  }
-
-  const handleReaction = async (reactionType: string, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (isReacting) return
-    
-    setIsReacting(true)
-    
-    try {
-      const response = await fetch('/api/forum/reactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topicId: topic.id,
-          type: reactionType
-        })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Update local reaction counts
-        setReactionCounts(prev => ({
-          ...prev,
-          [reactionType]: (prev[reactionType as keyof typeof prev] || 0) + 1
-        }))
-      }
-    } catch (error) {
-      console.error('Error adding reaction:', error)
-    } finally {
-      setIsReacting(false)
-    }
-  }
-
-  const reactions = [
-    { type: 'like', icon: ThumbsUp, color: 'text-blue-500', bgColor: 'bg-blue-100' },
-    { type: 'love', icon: Heart, color: 'text-red-500', bgColor: 'bg-red-100' },
-    { type: 'laugh', icon: Laugh, color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
-    { type: 'wow', icon: Smile, color: 'text-purple-500', bgColor: 'bg-purple-100' },
-    { type: 'sad', icon: Frown, color: 'text-gray-500', bgColor: 'bg-gray-100' },
-    { type: 'angry', icon: Angry, color: 'text-orange-500', bgColor: 'bg-orange-100' }
-  ]
-
   return (
-    <div 
-      className="block p-5 transition-colors duration-200 cursor-pointer hover:bg-gray-50 rounded-lg"
-      onClick={handleTopicClick}
+    <a
+      href={topic.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block p-5 transition-all duration-200"
     >
       <div className="flex items-start gap-4">
         {/* User Avatar */}
@@ -163,13 +100,6 @@ export function ForumThreadItem({ topic }: ForumThreadItemProps) {
             </div>
           </div>
 
-          {/* Excerpt */}
-          {topic.excerpt && (
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-              {topic.excerpt}
-            </p>
-          )}
-
           {/* Metadata Row */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {/* Category */}
@@ -200,7 +130,7 @@ export function ForumThreadItem({ topic }: ForumThreadItemProps) {
             </div>
           </div>
 
-          {/* Author Info and Reactions */}
+          {/* Author Info */}
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
               <span>by </span>
@@ -209,42 +139,26 @@ export function ForumThreadItem({ topic }: ForumThreadItemProps) {
               </span>
             </div>
 
-            {/* Reaction Buttons */}
-            <div className="flex items-center gap-1">
-              {reactions.map(({ type, icon: Icon, color, bgColor }) => {
-                const count = reactionCounts[type as keyof typeof reactionCounts] || 0
-                if (count === 0) return null
-                
-                return (
-                  <Button
-                    key={type}
-                    variant="ghost"
-                    size="sm"
-                    className={`h-8 px-2 ${bgColor} hover:opacity-80 transition-opacity`}
-                    onClick={(e) => handleReaction(type, e)}
-                    disabled={isReacting}
-                  >
-                    <Icon className={`h-3.5 w-3.5 ${color} mr-1`} />
-                    <span className={`text-xs font-medium ${color}`}>{count}</span>
-                  </Button>
-                )
-              })}
-              
-              {/* Quick Like Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 bg-blue-100 hover:bg-blue-200 transition-colors"
-                onClick={(e) => handleReaction('like', e)}
-                disabled={isReacting}
-              >
-                <ThumbsUp className="h-3.5 w-3.5 text-blue-500 mr-1" />
-                <span className="text-xs font-medium text-blue-500">Like</span>
-              </Button>
-            </div>
+            {/* Additional Stats (Optional) */}
+            {(topic.view_count > 0 || topic.like_count > 0) && (
+              <div className="flex items-center gap-2">
+                {topic.view_count > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg">
+                    <Eye className="h-3.5 w-3.5 text-gray-500" />
+                    <span className="text-xs text-gray-600 font-medium">{topic.view_count}</span>
+                  </div>
+                )}
+                {topic.like_count > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-pink-100 rounded-lg">
+                    <ThumbsUp className="h-3.5 w-3.5 text-pink-500" />
+                    <span className="text-xs text-pink-600 font-medium">{topic.like_count}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </a>
   )
 }

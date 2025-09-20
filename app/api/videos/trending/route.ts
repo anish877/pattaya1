@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit') || '10';
 
     // Fetch trending topics from Strapi videos
-    const strapiUrl = ` https://api.pattaya1.com/api/videos?pagination[page]=1&pagination[pageSize]=50&populate=*&sort[0]=view_count:desc&sort[1]=createdAt:desc`;
+    const strapiUrl = ` http://localhost:1337/api/videos?pagination[page]=1&pagination[pageSize]=50&populate=*&sort[0]=view_count:desc&sort[1]=createdAt:desc`;
 
     console.log('Fetching trending topics from Strapi:', strapiUrl);
 

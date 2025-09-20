@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Star, ExternalLink, RefreshCw, MapPin } from "lucide-react"
+import { Star, ExternalLink, RefreshCw, MapPin, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { SponsorshipBanner } from "./sponsorship-banner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -59,7 +58,10 @@ export function GoogleReviewsWidget() {
   const [statsData, setStatsData] = useState<ReviewsStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
   const [isLive, setIsLive] = useState(true)
+  const [isAutoPlay, setIsAutoPlay] = useState(true)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   /* ------------------------------------------------------------------ */
   /*                             EFFECTS                                */
@@ -67,11 +69,27 @@ export function GoogleReviewsWidget() {
   useEffect(() => {
     loadReviews()
     loadStats()
+
+    // Auto-rotate reviews every 6 seconds when auto-play is enabled
+    const interval = setInterval(() => {
+      if (!isAutoPlay) return
+      const total = reviewsData?.data?.length ?? 0
+      if (!total) return
+      nextReview()
+    }, 6000)
+
+    // Live polling every 30 seconds
     const liveInterval = setInterval(() => {
-      if (isLive) loadReviews()
+      if (isLive) {
+        loadReviews()
+      }
     }, 30000)
-    return () => clearInterval(liveInterval)
-  }, [isLive])
+
+    return () => {
+      clearInterval(interval)
+      clearInterval(liveInterval)
+    }
+  }, [reviewsData?.data?.length, isLive, isAutoPlay])
 
   /* ------------------------------------------------------------------ */
   /*                        DATA FETCH / FALLBACK                       */
@@ -127,7 +145,32 @@ export function GoogleReviewsWidget() {
     setIsLive(!isLive)
   }
 
-  // Remove carousel helpers for scrolling list UI
+  const toggleAutoPlay = () => {
+    setIsAutoPlay(!isAutoPlay)
+  }
+
+  const nextReview = () => {
+    if (isTransitioning || !reviewsData?.data?.length) return
+    setIsTransitioning(true)
+    const total = reviewsData.data.length
+    setCurrentReviewIndex((prev) => (prev + 1) % total)
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
+
+  const prevReview = () => {
+    if (isTransitioning || !reviewsData?.data?.length) return
+    setIsTransitioning(true)
+    const total = reviewsData.data.length
+    setCurrentReviewIndex((prev) => (prev - 1 + total) % total)
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
+
+  const goToReview = (index: number) => {
+    if (isTransitioning || !reviewsData?.data?.length || index === currentReviewIndex) return
+    setIsTransitioning(true)
+    setCurrentReviewIndex(index)
+    setTimeout(() => setIsTransitioning(false), 300)
+  }
 
   /* ------------------------------------------------------------------ */
   /*                            HELPERS                                 */
@@ -156,16 +199,26 @@ export function GoogleReviewsWidget() {
 
   if (!reviewsData || (reviewsData.data?.length ?? 0) === 0) return <EmptyCard />
 
+  const current = reviewsData.data[currentReviewIndex]
+
   return (
-    <Card className="top-row-widget reviews-widget bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 h-full flex flex-col overflow-hidden">
-      <SponsorshipBanner widgetType="google-reviews" />
-      <CardHeader className="pb-2 flex-shrink-0">
+    <Card className="top-row-widget reviews-widget bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 h-full">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center space-x-2 text-yellow-800">
             <Star className="w-4 h-4 text-yellow-600 animate-pulse" />
             <span>Latest Reviews</span>
           </CardTitle>
           <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleAutoPlay}
+              className={`h-6 w-6 p-0 ${isAutoPlay ? 'text-green-600' : 'text-gray-500'}`}
+              aria-label={isAutoPlay ? 'Pause auto-play' : 'Start auto-play'}
+            >
+              {isAutoPlay ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -180,12 +233,65 @@ export function GoogleReviewsWidget() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 min-h-0 flex flex-col p-2 overflow-hidden">
-        {/* Scroll List Container */}
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-2">
-          {reviewsData.data.map((rev) => (
-            <ReviewCard key={rev.id} review={rev} />
-          ))}
+      <CardContent className="flex flex-col h-full">
+        {/* Carousel Container */}
+        <div className="flex-1 relative overflow-hidden">
+          {/* Current review with transition */}
+          <div 
+            className={`transition-all duration-300 ease-in-out ${
+              isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+            }`}
+          >
+            <ReviewCard review={current} />
+          </div>
+        </div>
+
+        {/* Carousel Navigation */}
+        <div className="flex items-center justify-between mt-4">
+          {/* Previous Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={prevReview}
+            disabled={isTransitioning || reviewsData?.data?.length <= 1}
+            className="h-8 w-8 p-0 hover:bg-yellow-100"
+            aria-label="Previous review"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+
+          {/* Indicators */}
+          <div className="flex items-center space-x-1">
+            {reviewsData?.data?.slice(0, 5).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToReview(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === currentReviewIndex
+                    ? 'bg-yellow-600 w-4'
+                    : 'bg-yellow-300 hover:bg-yellow-400'
+                }`}
+                aria-label={`Go to review ${index + 1}`}
+              />
+            ))}
+            {reviewsData?.data?.length > 5 && (
+              <span className="text-xs text-gray-500 ml-1">
+                +{reviewsData.data.length - 5}
+              </span>
+            )}
+          </div>
+
+          {/* Next Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={nextReview}
+            disabled={isTransitioning || reviewsData?.data?.length <= 1}
+            className="h-8 w-8 p-0 hover:bg-yellow-100"
+            aria-label="Next review"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Stats and Info */}
@@ -200,7 +306,9 @@ export function GoogleReviewsWidget() {
             )}
           </div>
           <div className="flex items-center space-x-2">
-            <span className="font-medium">{reviewsData.data.length} reviews</span>
+            <span className="font-medium">
+              {currentReviewIndex + 1}/{reviewsData.data.length}
+            </span>
             <Button
               variant="ghost"
               size="sm"

@@ -81,7 +81,7 @@ export function IsolatedVoteButton({ article, onVoteUpdate }: IsolatedVoteButton
       setIsVoting(true);
       try {
         const endpoint = newUserVote || 'remove-vote';
-        const response = await fetch(` https://api.pattaya1.com/api/breaking-news/${articleId}/${endpoint}`, {
+        const response = await fetch(` http://localhost:1337/api/breaking-news/${articleId}/${endpoint}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

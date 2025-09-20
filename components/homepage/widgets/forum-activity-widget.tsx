@@ -169,7 +169,7 @@ export function ForumActivityWidget() {
       <CardContent className="p-0">
         {/* Apple-style Stats Grid */}
         <div className="bg-gray-50/50 border-b border-gray-100/60 p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="text-center p-4 bg-white rounded-2xl shadow-sm border border-gray-100/60 hover:shadow-md transition-all duration-200">
               <div className="flex items-center justify-center mb-2">
                 <div className="p-2 bg-orange-500/10 rounded-xl">
@@ -210,12 +210,12 @@ export function ForumActivityWidget() {
         </div>
 
         {/* Apple-style Scrollable Content */}
-        <div className="min-h-64 max-h-80 md:max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <div className="space-y-1 p-6">
             {topics.length > 0 ? (
               topics.map((topic, index) => (
                 <div key={topic.id} className="group">
-                  <div className="bg-white rounded-2xl border border-gray-100/60 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200">
+                  <div className="bg-white rounded-2xl border border-gray-100/60 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 group-hover:scale-[1.01]">
                     <ForumThreadItem topic={topic} />
                   </div>
                 </div>

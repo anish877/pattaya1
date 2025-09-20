@@ -89,11 +89,7 @@ interface SearchFacets {
   severities: string[]
 }
 
-import { createPortal } from 'react-dom'
-
-interface UnifiedSearchProps { compact?: boolean }
-
-export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchProps) {
+export default function UnifiedSearchWidget() {
   const [query, setQuery] = useState('')
   const [searchMode, setSearchMode] = useState<'site' | 'web'>('site')
   const [activeTab, setActiveTab] = useState('web')
@@ -125,36 +121,8 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
   const [showSuggestions, setShowSuggestions] = useState(false)
   
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const formRef = useRef<HTMLFormElement>(null)
-  const [dropdownRect, setDropdownRect] = useState<{ left: number; top: number; width: number } | null>(null)
-
-  const updateDropdownRect = () => {
-    const el = formRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    setDropdownRect({ 
-      left: rect.left + window.scrollX, 
-      top: rect.bottom + window.scrollY + 4, // Add small gap
-      width: rect.width 
-    })
-  }
-
-  useEffect(() => {
-    updateDropdownRect()
-    const onResize = () => updateDropdownRect()
-    const onScroll = () => updateDropdownRect()
-    window.addEventListener('resize', onResize)
-    window.addEventListener('scroll', onScroll, true)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      window.removeEventListener('scroll', onScroll, true)
-    }
-  }, [])
-
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const hitsPerPage = 5
-  const isWebMode = searchMode === 'web'
-  const isSiteMode = searchMode === 'site'
 
   // Load trending topics and facets on component mount
   useEffect(() => {
@@ -230,7 +198,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
 
   const loadWebSuggestions = async (searchQuery: string) => {
     try {
-      const response = await fetch(`https://api.pattaya1.com/api/web-search/suggestions?query=${encodeURIComponent(searchQuery)}`)
+      const response = await fetch(` http://localhost:1337/api/web-search/suggestions?query=${encodeURIComponent(searchQuery)}`)
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
@@ -284,7 +252,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
 
     setLoading(true)
     try {
-      const response = await fetch(`https://api.pattaya1.com/api/web-search?query=${encodeURIComponent(searchQuery)}&page=${page}&num=8`)
+      const response = await fetch(` http://localhost:1337/api/web-search?query=${encodeURIComponent(searchQuery)}&page=${page}&num=8`)
       if (response.ok) {
         const data = await response.json()
         if (data && (data.success === true || data.status === 'ok')) {
@@ -321,7 +289,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
 
     setLoading(true)
     try {
-      const response = await fetch(`https://api.pattaya1.com/api/web-search/images?query=${encodeURIComponent(searchQuery)}&num=8&imgSize=medium`)
+      const response = await fetch(` http://localhost:1337/api/web-search/images?query=${encodeURIComponent(searchQuery)}&num=8&imgSize=medium`)
       if (response.ok) {
         const data = await response.json()
         if (data && (data.success === true || data.status === 'ok')) {
@@ -348,7 +316,6 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      updateDropdownRect() // Ensure rect is updated before showing results
       if (searchMode === 'site') {
         performSiteSearch(query, 0)
       } else {
@@ -435,19 +402,92 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
 
   const currentSuggestions = searchMode === 'site' ? siteSuggestions : webSuggestions
 
-  // Web search now handled internally with same styling as site search
+  // If user switches to Web mode, delegate to the simpler, proven web widget
+  if (searchMode === 'web') {
+    return (
+      <div className="h-full w-full">
+        <WebSearchWidget />
+      </div>
+    )
+  }
 
   return (
     <div className="h-full w-full">
       
-      {/* Transparent background container */}
+      {/* Transparent background with animated icons */}
       <div className="h-full bg-transparent relative">
+        {/* Animated floating icons around search bar */}
+        <div className="absolute inset-0 pointer-events-none z-5">
+          {/* Top left icons with enhanced glow */}
+          <div className="absolute top-8 left-8 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>
+            <Search className={`h-6 w-6 ${searchMode === 'site' ? 'text-pink-400' : 'text-purple-400'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 6px rgba(236, 72, 153, 0.4)) drop-shadow(0 0 12px rgba(236, 72, 153, 0.2)) drop-shadow(0 0 18px rgba(236, 72, 153, 0.1))' 
+                : 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.4)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.2)) drop-shadow(0 0 18px rgba(168, 85, 247, 0.1))'
+            }} />
+          </div>
+          <div className="absolute top-16 left-16 animate-pulse" style={{ animationDelay: '1s', animationDuration: '2s' }}>
+            <Globe className={`h-5 w-5 ${searchMode === 'site' ? 'text-pink-300' : 'text-purple-300'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 4px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 8px rgba(236, 72, 153, 0.15))' 
+                : 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.15))'
+            }} />
+          </div>
+          
+          {/* Top right icons with enhanced glow */}
+          <div className="absolute top-12 right-12 animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }}>
+            <Filter className={`h-5 w-5 ${searchMode === 'site' ? 'text-pink-400' : 'text-purple-400'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 6px rgba(236, 72, 153, 0.4)) drop-shadow(0 0 12px rgba(236, 72, 153, 0.2)) drop-shadow(0 0 18px rgba(236, 72, 153, 0.1))' 
+                : 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.4)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.2)) drop-shadow(0 0 18px rgba(168, 85, 247, 0.1))'
+            }} />
+          </div>
+          <div className="absolute top-20 right-8 animate-pulse" style={{ animationDelay: '1.5s', animationDuration: '3.5s' }}>
+            <TrendingUp className={`h-6 w-6 ${searchMode === 'site' ? 'text-pink-300' : 'text-purple-300'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 4px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 8px rgba(236, 72, 153, 0.15))' 
+                : 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.15))'
+            }} />
+          </div>
+          
+          {/* Bottom left icons with enhanced glow */}
+          <div className="absolute bottom-16 left-12 animate-bounce" style={{ animationDelay: '2s', animationDuration: '2.8s' }}>
+            <Image className={`h-5 w-5 ${searchMode === 'site' ? 'text-pink-400' : 'text-purple-400'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 6px rgba(236, 72, 153, 0.4)) drop-shadow(0 0 12px rgba(236, 72, 153, 0.2)) drop-shadow(0 0 18px rgba(236, 72, 153, 0.1))' 
+                : 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.4)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.2)) drop-shadow(0 0 18px rgba(168, 85, 247, 0.1))'
+            }} />
+          </div>
+          <div className="absolute bottom-8 left-20 animate-pulse" style={{ animationDelay: '0.8s', animationDuration: '2.2s' }}>
+            <Search className={`h-4 w-4 ${searchMode === 'site' ? 'text-pink-300' : 'text-purple-300'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 4px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 8px rgba(236, 72, 153, 0.15))' 
+                : 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.15))'
+            }} />
+          </div>
+          
+          {/* Bottom right icons with enhanced glow */}
+          <div className="absolute bottom-12 right-16 animate-bounce" style={{ animationDelay: '1.2s', animationDuration: '3.2s' }}>
+            <Globe className={`h-6 w-6 ${searchMode === 'site' ? 'text-pink-400' : 'text-purple-400'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 6px rgba(236, 72, 153, 0.4)) drop-shadow(0 0 12px rgba(236, 72, 153, 0.2)) drop-shadow(0 0 18px rgba(236, 72, 153, 0.1))' 
+                : 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.4)) drop-shadow(0 0 12px rgba(168, 85, 247, 0.2)) drop-shadow(0 0 18px rgba(168, 85, 247, 0.1))'
+            }} />
+          </div>
+          <div className="absolute bottom-20 right-12 animate-pulse" style={{ animationDelay: '2.5s', animationDuration: '2.7s' }}>
+            <Filter className={`h-4 w-4 ${searchMode === 'site' ? 'text-pink-300' : 'text-purple-300'}`} style={{
+              filter: searchMode === 'site' 
+                ? 'drop-shadow(0 0 4px rgba(236, 72, 153, 0.3)) drop-shadow(0 0 8px rgba(236, 72, 153, 0.15))' 
+                : 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 8px rgba(168, 85, 247, 0.15))'
+            }} />
+          </div>
+        </div>
 
         {/* Clean, centered search container */}
-        <div className={`flex flex-col items-center justify-center h-full ${compact ? 'px-0 py-0' : 'px-6 py-8'} relative z-10`}>
+        <div className="flex flex-col items-center justify-center h-full px-6 py-8 relative z-10">
           {/* Simple, clean search bar */}
-          <div className={`w-full ${compact ? 'max-w-xl' : 'max-w-3xl'}`}>
-            <form ref={formRef} onSubmit={handleSearch} className={`flex items-center gap-1 bg-white rounded-xl shadow-lg border-2 ${compact ? 'px-2 py-1 h-8' : 'p-2'} transition-all duration-150 relative ${
+          <div className="w-full max-w-3xl">
+            <form onSubmit={handleSearch} className={`flex items-center gap-3 bg-white rounded-xl shadow-lg border-2 p-2 transition-all duration-150 relative ${
               searchMode === 'site' 
                 ? 'border-pink-200 hover:border-pink-300 focus-within:border-pink-400' 
                 : 'border-purple-200 hover:border-purple-300 focus-within:border-purple-400'
@@ -458,7 +498,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
               transition: 'all 0.15s ease-in-out'
             }}>
               {/* Subtle search icon with gentle glow */}
-              <Search className={`${compact ? 'h-3 w-3 ml-1' : 'h-5 w-5 ml-3'} transition-all duration-150 ${
+              <Search className={`h-5 w-5 ml-3 transition-all duration-150 ${
                 searchMode === 'site' ? 'text-pink-500' : 'text-purple-500'
               }`} style={{
                 filter: searchMode === 'site' 
@@ -471,19 +511,14 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                 ref={searchInputRef}
                 type="text"
                 placeholder={
-                  compact 
-                    ? (searchMode === 'site' ? "Search site..." : "Search web...")
-                    : (searchMode === 'site' 
-                        ? "Search news, articles, events, businesses..." 
-                        : "Search the entire web, images, videos...")
+                  searchMode === 'site' 
+                    ? "Search news, articles, events, businesses..." 
+                    : "Search the entire web, images, videos..."
                 }
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className={`flex-1 border-0 bg-transparent ${compact ? 'text-xs h-6' : 'text-lg'} placeholder:text-gray-500 focus:ring-0 focus:outline-none text-gray-900`}
-                onFocus={() => {
-                  updateDropdownRect()
-                  if (query.length >= 2) setShowSuggestions(true)
-                }}
+                className="flex-1 border-0 bg-transparent text-lg placeholder:text-gray-500 focus:ring-0 focus:outline-none"
+                onFocus={() => query.length >= 2 && setShowSuggestions(true)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault()
@@ -503,85 +538,31 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                     setImageResults([])
                     setShowSuggestions(false)
                   }}
-                  className={`${compact ? 'p-1' : 'p-2'} rounded-full hover:bg-gray-100 transition-colors`}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <X className={`${compact ? 'h-3 w-3' : 'h-4 w-4'} text-gray-400`} />
+                  <X className="h-4 w-4 text-gray-400" />
                 </button>
-              )}
-
-              {/* Inline quick icons */}
-              {isSiteMode && (
-                <button
-                  type="button"
-                  onClick={() => setShowSiteFilters(!showSiteFilters)}
-                  className={`rounded-md hover:bg-gray-100 transition-colors ${compact ? 'p-1' : 'p-1.5'}`}
-                  title="Advanced Filters"
-                  aria-label="Advanced Filters"
-                >
-                  <Filter className={`${compact ? 'h-4 w-4' : 'h-4 w-4'} text-gray-500`} />
-                </button>
-              )}
-              {isSiteMode && (
-                <button
-                  type="button"
-                  onClick={() => setShowTrending(!showTrending)}
-                  className={`rounded-md hover:bg-gray-100 transition-colors ${compact ? 'p-1' : 'p-1.5'}`}
-                  title="Hot Topics"
-                  aria-label="Hot Topics"
-                >
-                  <TrendingUp className={`${compact ? 'h-4 w-4' : 'h-4 w-4'} text-gray-500`} />
-                </button>
-              )}
-              
-              {/* Web search tabs - only show when in web mode and not compact */}
-              {isWebMode && !compact && (
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('web')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      activeTab === 'web' 
-                        ? 'bg-purple-100 text-purple-700' 
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <Globe className="h-3 w-3 inline mr-1" />
-                    Web
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('images')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      activeTab === 'images' 
-                        ? 'bg-purple-100 text-purple-700' 
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <Image className="h-3 w-3 inline mr-1" />
-                    Images
-                  </button>
-                </div>
               )}
               
               {/* Subtle mode toggle with gentle glow */}
               <Select value={searchMode} onValueChange={(value: 'site' | 'web') => setSearchMode(value)}>
-                <SelectTrigger className={`${compact ? 'w-16 h-6' : 'w-24 h-10'} border-0 bg-transparent hover:bg-gray-50 rounded-lg transition-all duration-150 ${
+                <SelectTrigger className={`w-32 h-10 border-0 bg-transparent hover:bg-gray-50 rounded-lg transition-all duration-150 ${
                   searchMode === 'site' ? 'text-pink-600' : 'text-purple-600'
                 }`} style={{
                   boxShadow: searchMode === 'site' 
                     ? '0 0 6px rgba(236, 72, 153, 0.2)' 
                     : '0 0 6px rgba(168, 85, 247, 0.2)'
                 }}>
-                  <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
+                  <div className="flex items-center gap-2">
                     {searchMode === 'site' ? (
-                      <Search className={`${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                      <Search className="h-4 w-4" />
                     ) : (
-                      <Globe className={`${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                      <Globe className="h-4 w-4" />
                     )}
-                    <span className={`font-medium ${compact ? 'text-xs' : ''}`}>
+                    <span className="font-medium">
                       {searchMode === 'site' ? 'Site' : 'Web'}
                     </span>
-                    {!compact && <ChevronDown className="h-3 w-3" />}
+                    <ChevronDown className="h-3 w-3" />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="border-0 shadow-xl rounded-lg bg-white/95 backdrop-blur-sm transition-all duration-150">
@@ -599,15 +580,12 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
           </div>
 
           {/* Subtle search suggestions dropdown with gentle glow */}
-          {showSuggestions && currentSuggestions.length > 0 && dropdownRect && createPortal(
-            <div ref={suggestionsRef} className={`z-[99999] fixed bg-white/95 backdrop-blur-sm border-0 rounded-xl shadow-2xl max-h-64 overflow-y-auto transition-all duration-150 ${
+          {showSuggestions && currentSuggestions.length > 0 && (
+            <div ref={suggestionsRef} className={`absolute top-full left-0 right-0 z-[9999] mt-3 bg-white/95 backdrop-blur-sm border-0 rounded-xl shadow-2xl max-h-64 overflow-y-auto transition-all duration-150 ${
               searchMode === 'site' 
                 ? 'shadow-pink-200/20' 
                 : 'shadow-purple-200/20'
             }`} style={{
-              left: dropdownRect.left,
-              top: dropdownRect.top + 4,
-              width: dropdownRect.width,
               boxShadow: searchMode === 'site' 
                 ? '0 10px 20px -5px rgba(236, 72, 153, 0.15), 0 0 0 1px rgba(236, 72, 153, 0.1)' 
                 : '0 10px 20px -5px rgba(168, 85, 247, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.1)'
@@ -616,7 +594,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                 <button
                   key={index}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className={`w-full px-5 py-3 text-left transition-all duration-150 flex items-center justify-between border-b border-gray-100/50 last:border-b-0 ${
+                  className={`w-full px-5 py-4 text-left transition-all duration-150 flex items-center justify-between border-b border-gray-100/50 last:border-b-0 hover:scale-[1.01] ${
                     searchMode === 'site' 
                       ? 'hover:bg-pink-50/80' 
                       : 'hover:bg-purple-50/80'
@@ -641,26 +619,57 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                   }} />
                 </button>
               ))}
-            </div>, document.body
+            </div>
           )}
         </div>
       </div>
 
-      {/* Web tabs removed for cleaner inline experience */}
+      {/* Subtle web search tabs with gentle glow */}
+      {searchMode === 'web' && (
+        <div className="flex justify-center mt-4">
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => {
+              setActiveTab(val)
+              // Keep suggestions visible when switching tabs if we have any
+              if (searchMode === 'web') {
+                const hasAny = (webSuggestions?.length || 0) > 0
+                if (hasAny && query.length >= 2) setShowSuggestions(true)
+              }
+            }}
+            className="w-full max-w-3xl"
+          >
+            <TabsList className="grid w-full grid-cols-2 bg-white/90 backdrop-blur-sm border-0 rounded-xl shadow-lg p-1 transition-all duration-150" style={{
+              boxShadow: '0 8px 16px -4px rgba(168, 85, 247, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.1)'
+            }}>
+              <TabsTrigger 
+                value="web" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white rounded-lg p-3 transition-all duration-150 hover:scale-105"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">Web Search</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="images" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white rounded-lg p-3 transition-all duration-150 hover:scale-105"
+              >
+                <Image className="h-4 w-4" />
+                <span className="font-medium">Image Search</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
 
       {/* Subtle results container with gentle glow */}
-      {((isSiteMode && siteResults.length > 0) || 
-        (isWebMode && (webResults.length > 0 || imageResults.length > 0)) || 
-        loading) && dropdownRect && createPortal(
-        <div className={`fixed z-[99999] bg-white/95 backdrop-blur-sm border-0 rounded-xl shadow-2xl max-h-96 overflow-y-auto transition-all duration-150 ${
+      {((searchMode === 'site' && siteResults.length > 0) || 
+        (searchMode === 'web' && (webResults.length > 0 || imageResults.length > 0)) || 
+        loading) && (
+        <div className={`absolute top-full left-0 right-0 z-[9999] mt-3 bg-white/95 backdrop-blur-sm border-0 rounded-xl shadow-2xl max-h-96 overflow-y-auto transition-all duration-150 ${
           searchMode === 'site' 
             ? 'shadow-pink-200/20' 
             : 'shadow-purple-200/20'
         }`} style={{
-          left: dropdownRect?.left || 0,
-          top: dropdownRect?.top || 0,
-          width: dropdownRect?.width || 300,
-          minWidth: '300px',
           boxShadow: searchMode === 'site' 
             ? '0 10px 20px -5px rgba(236, 72, 153, 0.15), 0 0 0 1px rgba(236, 72, 153, 0.1)' 
             : '0 10px 20px -5px rgba(168, 85, 247, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.1)'
@@ -681,7 +690,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
           )}
 
           {/* Site Search Results */}
-          {isSiteMode && siteResults.length > 0 && !loading && (
+          {searchMode === 'site' && siteResults.length > 0 && !loading && (
             <div className="p-4">
               <div className="text-sm text-gray-600 mb-3">
                 {siteTotalResults} results found
@@ -765,7 +774,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
           )}
 
           {/* Web Search Results */}
-          {isWebMode && activeTab === 'web' && webResults.length > 0 && !loading && (
+          {searchMode === 'web' && activeTab === 'web' && webResults.length > 0 && !loading && (
             <div className="p-4">
               <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
                 <span>
@@ -774,9 +783,9 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                 <span>Page {webCurrentPage}</span>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {webResults.map((result, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-3 last:border-b-0">
+                  <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
                     <div className="flex gap-3">
                       {result.thumbnail && (
                         <div className="flex-shrink-0">
@@ -820,13 +829,12 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                     size="sm"
                     disabled={webCurrentPage === 1}
                     onClick={() => performWebSearch(query, webCurrentPage - 1)}
-                    className="h-8 px-3 text-xs"
                   >
                     Previous
                   </Button>
                   
-                  <span className="text-xs text-gray-600 px-3">
-                    {webCurrentPage} of {webTotalPages}
+                  <span className="text-sm text-gray-600">
+                    Page {webCurrentPage}
                   </span>
                   
                   <Button
@@ -834,7 +842,6 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
                     size="sm"
                     disabled={webCurrentPage >= 10} // Google CSE limit
                     onClick={() => performWebSearch(query, webCurrentPage + 1)}
-                    className="h-8 px-3 text-xs"
                   >
                     Next
                   </Button>
@@ -844,7 +851,7 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
           )}
 
           {/* Image Search Results */}
-          {isWebMode && activeTab === 'images' && imageResults.length > 0 && !loading && (
+          {searchMode === 'web' && activeTab === 'images' && imageResults.length > 0 && !loading && (
             <div className="p-4">
               <div className="grid grid-cols-2 gap-3">
                 {imageResults.map((result, index) => (
@@ -876,19 +883,19 @@ export default function UnifiedSearchWidget({ compact = false }: UnifiedSearchPr
 
           {/* No Results */}
           {!loading && (
-            (isSiteMode && siteResults.length === 0) ||
-            (isWebMode && activeTab === 'web' && webResults.length === 0) ||
-            (isWebMode && activeTab === 'images' && imageResults.length === 0)
+            (searchMode === 'site' && siteResults.length === 0) ||
+            (searchMode === 'web' && activeTab === 'web' && webResults.length === 0) ||
+            (searchMode === 'web' && activeTab === 'images' && imageResults.length === 0)
           ) && query && (
             <div className="text-center py-8">
               <p className="text-sm text-gray-600">No results found for "{query}"</p>
             </div>
           )}
-        </div>, document.body)
-      }
+        </div>
+      )}
 
-      {/* Nightlife themed Quick Actions for Site Search with glow (hidden in compact/inline use) */}
-      {!compact && isSiteMode && (
+      {/* Nightlife themed Quick Actions for Site Search with glow */}
+      {searchMode === 'site' && (
         <div className="flex justify-center gap-3 mt-4">
           <Button
             variant="outline"
