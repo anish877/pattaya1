@@ -60,7 +60,7 @@ const STRAPI_COLLECTIONS = {
   'trending-topic': 'trending-topics'
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || ' http://localhost:1337'
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || ' https://api.pattaya1.com'
 
 async function fetchFromStrapi(collection: string, contentType: string): Promise<any[]> {
   try {

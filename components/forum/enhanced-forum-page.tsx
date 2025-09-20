@@ -80,7 +80,7 @@ interface ForumTopic {
     timestamp: string
   }
   createdAt: string
-  tags: string[]
+  tags?: string[]
   excerpt: string
 }
 
@@ -324,9 +324,11 @@ export function EnhancedForumPage() {
                                 <div className="flex items-center space-x-1">
                                   <Avatar className="h-5 w-5">
                                     <AvatarImage src="/placeholder.svg" />
-                                    <AvatarFallback>{topic.author.username[0]}</AvatarFallback>
+                                    <AvatarFallback>
+                                      {topic.author?.username?.[0] || 'U'}
+                                    </AvatarFallback>
                                   </Avatar>
-                                  <span>{topic.author.username}</span>
+                                  <span>{topic.author?.username || 'Unknown User'}</span>
                                 </div>
                                 <span>•</span>
                                 <span>{formatTimeAgo(topic.createdAt)}</span>
@@ -373,7 +375,7 @@ export function EnhancedForumPage() {
                             </div>
 
                             <div className="flex items-center space-x-2">
-                              {topic.tags.slice(0, 3).map((tag, index) => (
+                              {(topic.tags || []).slice(0, 3).map((tag, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
                                   #{tag}
                                 </Badge>

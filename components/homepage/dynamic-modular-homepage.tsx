@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react"
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { InView } from 'react-intersection-observer';
-import { Settings, BarChart3, Eye, EyeOff, ToggleLeft, ToggleRight, Activity, Sparkles, Save, RotateCcw, Move, Maximize2, X, GripVertical, Wand2, Lock } from "lucide-react"
+import { Settings, BarChart3, Eye, EyeOff, ToggleLeft, ToggleRight, Activity, Sparkles, Save, RotateCcw, Move, Maximize2, X, GripVertical, Wand2, Lock, Sun, Cloud, CloudRain, Wind, Droplets, Thermometer, Eye as EyeIcon, Sunrise, Sunset, AlertTriangle, MapPin, Clock, RefreshCw, CloudDrizzle, Zap, CloudSnow, Waves, Gauge } from "lucide-react"
 import { trackLayoutChange, trackWidgetResize, trackWidgetDrag, widgetTracker } from "@/lib/widget-tracker"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/components/auth/auth-provider"
+import { useLocation } from "@/components/location/location-provider"
+import { buildApiUrl } from "@/lib/strapi-config"
 
 // Import all widgets
 import { EnhancedBreakingNewsWidget } from "./widgets/enhanced-breaking-news-widget"
@@ -26,7 +28,7 @@ import { ForumActivityWidget } from "./widgets/forum-activity-widget"
 import { EventsCalendarWidget } from "./widgets/events-calendar-widget"
 import { TrafficWidget } from "./widgets/traffic-widget"
 import { GoogleReviewsWidget } from "../widgets/google-reviews-widget"
-import { CurrencyConverterWidget } from "../widgets/currency-converter-widget"
+import { CompactCurrencyConverterWidget } from "../widgets/compact-currency-converter-widget"
 import { NewCurrencyConverterWidget } from "../widgets/new-currency-converter-widget"
 import { EnhancedHotDealsWidget } from "./widgets/enhanced-hot-deals-widget"
 import { FoodWidget } from "../widgets/food-widget"
@@ -43,6 +45,11 @@ import 'react-resizable/css/styles.css';
 
 // ResponsiveGridLayout component with width provider
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
+// Minimal placeholder for empty reserved cells
+const EmptyPlaceholderWidget = () => (
+  <div className="h-full w-full bg-transparent" />
+)
 
 interface Widget {
   id: string
@@ -84,8 +91,87 @@ interface LayoutItem {
   static?: boolean
 }
 
+// Weather Data Interfaces
+interface WeatherData {
+  location: {
+    name: string
+    lat: number
+    lon: number
+  }
+  current: {
+    temperature: number
+    feelsLike: number
+    condition: string
+    description: string
+    humidity: number
+    windSpeed: number
+    pressure: number
+    visibility: number
+    uvIndex: number
+    icon: string
+    sunrise: string
+    sunset: string
+  }
+  hourly: Array<{
+    time: string
+    temp: number
+    icon: string
+  }>
+  daily: Array<{
+    date: string
+    high: number
+    low: number
+    icon: string
+    description: string
+  }>
+  airQuality?: {
+    index: number
+    level: string
+    pm25: number
+    pm10: number
+  }
+  alerts?: Array<{
+    event: string
+    severity: string
+    start: string
+    end: string
+    description: string
+  }>
+  marine?: {
+    tideTimes?: Array<{
+      type: 'High' | 'Low'
+      time: string
+    }>
+    seaState?: 'Calm' | 'Moderate' | 'Rough'
+    waveHeightM?: number
+  }
+  suggestions?: Array<{
+    title: string
+    description?: string
+    link: string
+    icon: string
+    priority?: boolean
+  }>
+  units: 'metric' | 'imperial'
+  lastUpdated: string
+  source: string
+}
+
+interface WeatherSettings {
+  defaultCityName: string
+  defaultLatitude: number
+  defaultLongitude: number
+  units: 'metric' | 'imperial'
+  updateFrequencyMinutes: number
+  widgetEnabled: boolean
+  sponsoredEnabled: boolean
+  sponsorName?: string
+  sponsorLogo?: string
+}
+
 export function DynamicModularHomepage() {
   const { user, firebaseUser, loading: authLoading, getStrapiToken } = useAuth()
+  const { location, units, setUnits } = useLocation()
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [layout, setLayout] = useState<LayoutItem[]>([])
   const [showAdmin, setShowAdmin] = useState(false)
@@ -94,6 +180,13 @@ export function DynamicModularHomepage() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalContent, setModalContent] = useState<{id: string, name: string, content: string} | null>(null)
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false)
+  
+  // Weather modal state
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [weatherSettings, setWeatherSettings] = useState<WeatherSettings | null>(null)
+  const [weatherLoading, setWeatherLoading] = useState(false)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
   
   // Check if user is authenticated
   const isAuthenticated = !!user && !!firebaseUser
@@ -227,6 +320,7 @@ export function DynamicModularHomepage() {
         "weather": { allowResize: true, allowDrag: true, allowDelete: false, isLocked: false },
         "breaking-news": { allowResize: true, allowDrag: true, allowDelete: false, isLocked: false },
         "radio": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
+        "currency-converter": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "hot-deals": { allowResize: true, allowDrag: true, allowDelete: false, isLocked: false },
         "social-feed": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "trending": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
@@ -235,7 +329,6 @@ export function DynamicModularHomepage() {
         "photo-gallery": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "forum-activity": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "google-reviews": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
-        "currency-converter": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "traffic": { allowResize: true, allowDrag: true, allowDelete: false, isLocked: false },
         "search-widgets": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
         "flight-tracker": { allowResize: true, allowDrag: true, allowDelete: true, isLocked: false },
@@ -261,44 +354,47 @@ export function DynamicModularHomepage() {
       
       // Beautifully organized layout with logical content groupings and optimal visual flow
       const defaultPositions: { [key: string]: { x: number, y: number, w: number, h: number } } = {
-        // 🔍 UNIFIED SEARCH BAR (Top Priority - Clean centered search bar)
-        "unified-search": { x: 1, y: 0, w: 10, h: 5 },
+        
         
         // 📰 NEWS & INFORMATION (Below search bar)
-        "weather": { x: 0, y: 5, w: 3, h: 11 },
+        "weather": { x: 0, y: 5, w: 3, h: 6 },
         "breaking-news": { x: 3, y: 5, w: 6, h: 6 },
-        "radio": { x: 9, y: 5, w: 3, h: 11 },
+        "radio": { x: 9, y: 5, w: 3, h: 6 },
+        // Hot deals between radio and currency (same size as Google Reviews)
+        "hot-deals": { x: 9, y: 11, w: 3, h: 8 },
+        // Currency converter below hot deals
+        "currency-converter": { x: 9, y: 19, w: 3, h: 6 },
         
-        // 🎬 CINEMA & FOOD (Below radio/news/weather with 4:6 ratio - cinema first)
-        "cinema": { x: 0, y: 16, w: 4, h: 8 },
-        "food": { x: 4, y: 16, w: 8, h: 8 },
+        // 🎬 CINEMA (Below weather widget with same height)
+        "cinema": { x: 0, y: 11, w: 3, h: 6 },
         
-        // ✈️ FLIGHT & CURRENCY (Below cinema/food with 3:6:3 ratio like weather/radio/news)
-        "flight-tracker": { x: 0, y: 24, w: 3, h: 8 },
-        "search-widgets": { x: 3, y: 24, w: 6, h: 8 },
-        "currency-converter": { x: 9, y: 24, w: 3, h: 8 },
+        // 🍽️ FOOD (Below breaking news, spans wider)
+        "food": { x: 3, y: 11, w: 6, h: 6 },
         
-        // 💬 SOCIAL & REVIEWS (Below flight/search/currency with 8:2 ratio)
-        "social-feed": { x: 0, y: 32, w: 8, h: 8 },
-        "google-reviews": { x: 8, y: 32, w: 4, h: 8 },
+        // ✈️ FLIGHT & SEARCH (Below cinema/food with 3:6:3 ratio like weather/radio/news)
+        // Swap positions: move Google Reviews where Traffic was
+        "google-reviews": { x: 9, y: 33, w: 3, h: 8 },
+        "search-widgets": { x: 3, y: 17, w: 6, h: 6 },
+        "youtube": { x: 3, y: 23, w: 6, h: 6 },
+        "flight-tracker": { x: 0, y: 25, w: 3, h: 6 },
         
-        // 🎯 HOT DEALS (Below news section for high engagement)
-        "hot-deals": { x: 3, y: 11, w: 6, h: 5 },
-        "forum-activity": { x: 0, y: 40, w: 6, h: 8 },
+        // 💬 SOCIAL & COMMUNITY
+        // Social feed placed directly below currency converter (same size as Google Reviews)
+        "social-feed": { x: 9, y: 25, w: 3, h: 8 },
+        // Trending same size as weather (w:3,h:6)
+        "trending": { x: 0, y: 33, w: 3, h: 6 },
         
-        // 🎬 ENTERTAINMENT & MEDIA (Visual content, grouped together)
-        "youtube": { x: 6, y: 40, w: 6, h: 10 },
-        "photo-gallery": { x: 0, y: 48, w: 6, h: 9 },
+        // Photo gallery just below featured videos (youtube) and forum below photo gallery
+        "photo-gallery": { x: 3, y: 29, w: 6, h: 6 },
+        "forum-activity": { x: 3, y: 35, w: 6, h: 6 },
         
         // 📅 EVENTS & ACTIVITIES (Time-sensitive, side by side)
-        "traffic": { x: 6, y: 50, w: 6, h: 8 },
-        "sports-fixtures": { x: 0, y: 57, w: 6, h: 8 },
+        // Swap positions: move Traffic to where Google Reviews was, keep weather-sized height
+        "traffic": { x: 0, y: 17, w: 3, h: 6 },
+        "sports-fixtures": { x: 0, y: 50, w: 6, h: 8 },
         
-        // 💬 SOCIAL & COMMUNITY (Interactive content, vertical stack)
-        "trending": { x: 6, y: 58, w: 6, h: 6 },
-        
-        // 🔍 NAVIGATION (Utility widgets, side by side)
-        "quick-links": { x: 0, y: 65, w: 6, h: 8 },
+        // Quick access (quick-links) below trending, same size as weather
+        "quick-links": { x: 0, y: 39, w: 3, h: 6 },
         
       };
       
@@ -366,21 +462,6 @@ export function DynamicModularHomepage() {
       });
 
       const defaultWidgets: Widget[] = [
-        addAdminSettings({
-          id: "unified-search",
-          name: "Unified Search",
-          type: "search",
-          description: "Search site content or the web with toggle functionality",
-          size: "large",
-          category: "Search",
-          isVisible: true,
-          isResizable: true,
-          allowUserResizingAndMoving: true,
-          isMandatory: true,
-          settings: {
-            refreshInterval: 300000,
-          },
-        }),
         addAdminSettings({
           id: "weather",
           name: "Weather Widget",
@@ -676,44 +757,44 @@ export function DynamicModularHomepage() {
   const handleResetLayout = () => {
     // Reset to beautifully organized layout with logical content groupings
     const resetLayout: LayoutItem[] = [
-      // 🔍 UNIFIED SEARCH BAR (Top Priority - Clean centered search bar)
-      { i: "unified-search", x: 1, y: 0, w: 10, h: 5, isDraggable: true, isResizable: true, static: false },
+      
       
       // 📰 NEWS & INFORMATION (Below search bar)
-      { i: "weather", x: 0, y: 5, w: 3, h: 11, isDraggable: true, isResizable: true, static: false },
+      { i: "weather", x: 0, y: 5, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       { i: "breaking-news", x: 3, y: 5, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
-      { i: "radio", x: 9, y: 5, w: 3, h: 11, isDraggable: true, isResizable: true, static: false },
+      { i: "radio", x: 9, y: 5, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
+      { i: "hot-deals", x: 9, y: 11, w: 3, h: 8, isDraggable: true, isResizable: true, static: false },
+      { i: "currency-converter", x: 9, y: 19, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       
-      // 🎬 CINEMA & FOOD (Below radio/news/weather with 4:6 ratio - cinema first)
-      { i: "cinema", x: 0, y: 16, w: 4, h: 8, isDraggable: true, isResizable: true, static: false },
-      { i: "food", x: 4, y: 16, w: 8, h: 8, isDraggable: true, isResizable: true, static: false },
+      // 🎬 CINEMA (Below weather widget with same height)
+      { i: "cinema", x: 0, y: 11, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       
-      // ✈️ FLIGHT & CURRENCY (Below cinema/food with 3:6:3 ratio like weather/radio/news)
-      { i: "flight-tracker", x: 0, y: 24, w: 3, h: 8, isDraggable: true, isResizable: true, static: false },
-      { i: "search-widgets", x: 3, y: 24, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
-      { i: "currency-converter", x: 9, y: 24, w: 3, h: 8, isDraggable: true, isResizable: true, static: false },
+      // 🍽️ FOOD (Below breaking news, spans wider but leaves space for currency converter)
+      { i: "food", x: 3, y: 11, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
       
-      // 💬 SOCIAL & REVIEWS (Below flight/search/currency with 8:2 ratio)
-      { i: "social-feed", x: 0, y: 32, w: 8, h: 8, isDraggable: true, isResizable: true, static: false },
-      { i: "google-reviews", x: 8, y: 32, w: 4, h: 8, isDraggable: true, isResizable: true, static: false },
+      // ✈️ FLIGHT & SEARCH (Below cinema/food with 3:6:3 ratio like weather/radio/news)
+      // Swap positions: move Google Reviews where Traffic was
+      { i: "google-reviews", x: 9, y: 33, w: 3, h: 8, isDraggable: true, isResizable: true, static: false },
+      { i: "search-widgets", x: 3, y: 17, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
+      { i: "youtube", x: 3, y: 23, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
+      { i: "flight-tracker", x: 0, y: 25, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       
-      // 🎯 HOT DEALS (Below news section for high engagement)
-      { i: "hot-deals", x: 3, y: 11, w: 6, h: 5, isDraggable: true, isResizable: true, static: false },
-      { i: "forum-activity", x: 0, y: 40, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
+      // 💬 SOCIAL & COMMUNITY
+      { i: "social-feed", x: 9, y: 25, w: 3, h: 8, isDraggable: true, isResizable: true, static: false },
+      // Trending same size as weather (w:3,h:6)
+      { i: "trending", x: 0, y: 33, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       
-      // 🎬 ENTERTAINMENT & MEDIA (Visual content, grouped together)
-      { i: "youtube", x: 6, y: 40, w: 6, h: 10, isDraggable: true, isResizable: true, static: false },
-      { i: "photo-gallery", x: 0, y: 48, w: 6, h: 9, isDraggable: true, isResizable: true, static: false },
+      // Photo gallery just below featured videos (youtube) and forum below photo gallery
+      { i: "photo-gallery", x: 3, y: 29, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
+      { i: "forum-activity", x: 3, y: 35, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
       
       // 📅 EVENTS & ACTIVITIES (Time-sensitive, side by side)
-      { i: "traffic", x: 6, y: 50, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
-      { i: "sports-fixtures", x: 0, y: 57, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
+      // Swap positions: move Traffic to where Google Reviews was, keep weather-sized height
+      { i: "traffic", x: 0, y: 17, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
+      { i: "sports-fixtures", x: 0, y: 50, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
       
-      // 💬 SOCIAL & COMMUNITY (Interactive content, vertical stack)
-      { i: "trending", x: 6, y: 58, w: 6, h: 6, isDraggable: true, isResizable: true, static: false },
-      
-      // 🔍 NAVIGATION (Utility widgets, side by side)
-      { i: "quick-links", x: 0, y: 65, w: 6, h: 8, isDraggable: true, isResizable: true, static: false },
+      // Quick access (quick-links) below trending, same size as weather
+      { i: "quick-links", x: 0, y: 39, w: 3, h: 6, isDraggable: true, isResizable: true, static: false },
       
     ];
     
@@ -778,6 +859,11 @@ export function DynamicModularHomepage() {
    * Handle widget expansion
    */
   const handleExpandWidget = useCallback((widgetId: string) => {
+    if (widgetId === 'weather') {
+      setIsWeatherModalOpen(true);
+      return;
+    }
+    
     const widget = widgets.find(w => w.id === widgetId);
     setModalContent({
       id: widgetId,
@@ -795,6 +881,184 @@ export function DynamicModularHomepage() {
     setModalContent(null);
   }, []);
 
+  /**
+   * Close weather modal
+   */
+  const closeWeatherModal = useCallback(() => {
+    setIsWeatherModalOpen(false);
+  }, []);
+
+  // Weather data fetching functions
+  const loadWeatherSettings = useCallback(async () => {
+    try {
+      const response = await fetch(buildApiUrl("weather/settings"))
+      if (response.ok) {
+        const data = await response.json()
+        setWeatherSettings(data.data)
+      }
+    } catch (error) {
+      console.error("Failed to load weather settings:", error)
+    }
+  }, [])
+
+  const loadWeatherData = useCallback(async () => {
+    if (!weatherSettings) return
+
+    try {
+      setWeatherError(null)
+      setWeatherLoading(true)
+
+      let apiUrl = buildApiUrl("weather/current")
+      const params = new URLSearchParams()
+
+      if (location) {
+        params.append('lat', location.lat.toString())
+        params.append('lon', location.lon.toString())
+      } else {
+        params.append('lat', weatherSettings.defaultLatitude.toString())
+        params.append('lon', weatherSettings.defaultLongitude.toString())
+      }
+      
+      params.append('units', units || weatherSettings.units)
+      apiUrl += `?${params.toString()}`
+
+      const response = await fetch(apiUrl)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setWeatherData(data.data)
+        console.log('Weather data loaded:', data.data.location.name)
+      } else {
+        throw new Error("Failed to fetch weather data")
+      }
+    } catch (err) {
+      console.error("Weather loading error:", err)
+      setWeatherError("Unable to load weather data")
+      
+      // Set fallback data
+      setWeatherData({
+        location: {
+          name: weatherSettings.defaultCityName,
+          lat: weatherSettings.defaultLatitude,
+          lon: weatherSettings.defaultLongitude
+        },
+        current: {
+          temperature: 32,
+          condition: "broken clouds",
+          description: "Broken Clouds",
+          humidity: 65,
+          windSpeed: 3,
+          pressure: 1013,
+          visibility: 10,
+          uvIndex: 6,
+          feelsLike: 39,
+          icon: "04d",
+          sunrise: new Date().toISOString(),
+          sunset: new Date().toISOString()
+        },
+        hourly: [],
+        daily: [],
+        airQuality: undefined,
+        alerts: [],
+        marine: {
+          tideTimes: [
+            { type: 'High', time: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString() },
+            { type: 'Low', time: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() }
+          ],
+          seaState: 'Moderate',
+          waveHeightM: 0.8
+        },
+        suggestions: [],
+        units: units || weatherSettings.units,
+        lastUpdated: new Date().toISOString(),
+        source: "OpenWeatherMap"
+      })
+    } finally {
+      setWeatherLoading(false)
+    }
+  }, [weatherSettings, location, units])
+
+  // Load weather data when modal opens
+  useEffect(() => {
+    if (isWeatherModalOpen) {
+      loadWeatherSettings()
+    }
+  }, [isWeatherModalOpen, loadWeatherSettings])
+
+  useEffect(() => {
+    if (weatherSettings && isWeatherModalOpen) {
+      loadWeatherData()
+    }
+  }, [weatherSettings, isWeatherModalOpen, loadWeatherData])
+
+  // Weather utility functions
+  const getWeatherIcon = (condition?: string, size: string = "h-12 w-12") => {
+    const conditionLower = condition?.toLowerCase() ?? "unknown"
+
+    switch (conditionLower) {
+      case "clear":
+      case "clear sky":
+      case "sunny":
+        return <Sun className={`${size} text-amber-500`} />
+      case "clouds":
+      case "cloudy":
+      case "partly cloudy":
+      case "few clouds":
+      case "scattered clouds":
+      case "broken clouds":
+        return <Cloud className={`${size} text-gray-400`} />
+      case "rain":
+      case "light rain":
+      case "moderate rain":
+      case "shower rain":
+        return <CloudRain className={`${size} text-gray-500`} />
+      case "drizzle":
+      case "light intensity drizzle":
+        return <CloudDrizzle className={`${size} text-gray-500`} />
+      case "thunderstorm":
+        return <Zap className={`${size} text-amber-600`} />
+      case "snow":
+        return <CloudSnow className={`${size} text-gray-300`} />
+      default:
+        return <Cloud className={`${size} text-gray-400`} />
+    }
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric"
+    })
+  }
+
+  const getAirQualityColor = (aqi: number) => {
+    switch (aqi) {
+      case 1: return "text-green-600 bg-green-100"
+      case 2: return "text-blue-600 bg-blue-100"
+      case 3: return "text-yellow-600 bg-yellow-100"
+      case 4: return "text-orange-600 bg-orange-100"
+      case 5: return "text-red-600 bg-red-100"
+      default: return "text-gray-600 bg-gray-100"
+    }
+  }
+
+  const getSeverityColor = (alertEvent: string) => {
+    const event = alertEvent.toLowerCase()
+    if (event.includes('warning') || event.includes('severe')) return 'text-red-600 bg-red-100 border-red-200'
+    if (event.includes('advisory')) return 'text-orange-600 bg-orange-100 border-orange-200'
+    return 'text-blue-600 bg-blue-100 border-blue-200'
+  }
+
   const visibleWidgets = widgets.filter((w) => w.isVisible)
 
   const getWidgetComponent = (widgetId: string) => {
@@ -810,7 +1074,7 @@ export function DynamicModularHomepage() {
       "hot-deals": EnhancedHotDealsWidget,
       "forum-activity": ForumActivityWidget,
       "photo-gallery": PhotoGalleryWidget,
-      "currency-converter": CurrencyConverterWidget,
+      "currency-converter": CompactCurrencyConverterWidget,
       "live-events": LiveEventsWidget,
       "quick-links": QuickLinksWidget,
       traffic: TrafficWidget,
@@ -840,9 +1104,9 @@ export function DynamicModularHomepage() {
         <div key={widget.id} className="widget-container bg-transparent overflow-visible relative">
           <InView triggerOnce>
             {({ inView, ref }) => (
-              <div ref={ref} className="widget-content h-full">
+              <div ref={ref} className="widget-content h-full min-h-0">
                 {inView ? (
-                  <div className="widget-loaded h-full flex flex-col">
+                  <div className="widget-loaded h-full min-h-0 flex flex-col">
                     {/* Widget Header with Controls - Only show in edit mode */}
                     {isEditMode && (
                       <div className="widget-header bg-gradient-to-r from-pink-600 to-purple-600 text-white p-2 flex justify-between items-center mb-2 rounded-lg">
@@ -914,9 +1178,9 @@ export function DynamicModularHomepage() {
       <div key={widget.id} className="widget-container bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
         <InView triggerOnce>
           {({ inView, ref }) => (
-            <div ref={ref} className="widget-content h-full">
+            <div ref={ref} className="widget-content h-full min-h-0">
               {inView ? (
-                <div className="widget-loaded h-full flex flex-col">
+                <div className="widget-loaded h-full min-h-0 flex flex-col">
                   {/* Widget Header with Controls - Only show in edit mode */}
                   {isEditMode && (
                     <div className="widget-header bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 flex justify-between items-center">
@@ -964,14 +1228,18 @@ export function DynamicModularHomepage() {
                   )}
                   
                   {/* Widget Body */}
-                  <div className="widget-body flex-1 p-0">
-                    {widget.id === 'flight-tracker' ? (
-                      <div className="widget-inner-content h-full overflow-auto">
+                  <div className="widget-body flex-1 min-h-0 p-0">
+                    {(widget.id === 'flight-tracker' || widget.id === 'social-feed' || widget.id === 'google-reviews') ? (
+                      <div className="widget-inner-content h-full min-h-0 overflow-auto">
                         <WidgetComponent />
                       </div>
                     ) : (
-                      <div className="widget-inner-content h-full">
-                        <WidgetComponent />
+                      <div className="widget-inner-content h-full min-h-0">
+                        {widget.id === 'weather' ? (
+                          <WidgetComponent onExpand={() => handleExpandWidget(widget.id)} />
+                        ) : (
+                          <WidgetComponent />
+                        )}
                       </div>
                     )}
                   </div>
@@ -1178,7 +1446,7 @@ export function DynamicModularHomepage() {
           containerPadding={[16, 16]}
           draggableHandle=".drag-handle"
         >
-          {widgets.map(renderWidget)}
+          {visibleWidgets.map(renderWidget)}
         </ResponsiveGridLayout>
       </div>
 
@@ -1198,6 +1466,199 @@ export function DynamicModularHomepage() {
                 <p className="text-sm"><strong>Widget ID:</strong> {modalContent.id}</p>
                 <p className="text-sm"><strong>Features:</strong> Full-screen view, detailed content, enhanced functionality</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Weather Modal - Compact Size */}
+      {isWeatherModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={closeWeatherModal}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-4xl max-h-[90vh] bg-white overflow-y-auto flex flex-col rounded-2xl shadow-2xl"
+          >
+            <div className="p-6 relative border-b border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {weatherData && getWeatherIcon(weatherData.current.condition, "h-8 w-8")}
+                    <span className="text-2xl font-semibold text-gray-900">Weather Details</span>
+                    {weatherData?.alerts && weatherData.alerts.length > 0 && (
+                      <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                        ⚠️ Weather Alert
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={loadWeatherData} 
+                    className="h-8 w-8 p-0 hover:bg-gray-100/80 rounded-full transition-colors" 
+                    disabled={weatherLoading}
+                  >
+                    <RefreshCw className={`w-4 h-4 text-gray-500 ${weatherLoading ? "animate-spin" : ""}`} />
+                  </Button>
+                  <button 
+                    onClick={closeWeatherModal} 
+                    className="h-8 w-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6 flex-1 scrollbar-hide">
+              {weatherLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <RefreshCw className="w-8 h-8 mx-auto mb-3 text-blue-500 animate-spin" />
+                    <p className="text-gray-600 font-medium">Loading weather data...</p>
+                  </div>
+                </div>
+              ) : weatherError ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <AlertTriangle className="w-8 h-8 mx-auto mb-3 text-red-500" />
+                    <p className="text-red-600 font-medium">{weatherError}</p>
+                    <Button onClick={loadWeatherData} variant="outline" size="sm" className="mt-3">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              ) : weatherData ? (
+                <>
+                  {/* Compact Weather Header - Similar to widget */}
+                  <div className="bg-gradient-to-br from-blue-500/10 via-indigo-500/15 to-purple-500/10 rounded-2xl p-6 border border-blue-200/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-4 h-4 text-blue-500" />
+                        <span className="font-semibold text-gray-900 text-lg">{weatherData.location.name}</span>
+                        {weatherData.alerts && weatherData.alerts.length > 0 && (
+                          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Main Weather Display */}
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <div className="text-6xl font-thin text-gray-900 tracking-tighter">
+                        {Math.round(weatherData.current.temperature)}°
+                      </div>
+                      <div className="transform transition-transform duration-200">
+                        {getWeatherIcon(weatherData.current.condition, "w-20 h-20")}
+                      </div>
+                    </div>
+                    
+                    <div className="text-left mb-4">
+                      <div className="text-xl font-medium text-gray-700 capitalize">{weatherData.current.description}</div>
+                      <div className="text-base text-gray-500">Feels like {Math.round(weatherData.current.feelsLike)}°</div>
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="text-center p-3 bg-white/60 rounded-xl">
+                        <Droplets className="w-5 h-5 mx-auto mb-1 text-blue-600" />
+                        <div className="text-sm font-semibold text-gray-900">{weatherData.current.humidity}%</div>
+                        <div className="text-xs text-gray-600">Humidity</div>
+                      </div>
+                      <div className="text-center p-3 bg-white/60 rounded-xl">
+                        <Wind className="w-5 h-5 mx-auto mb-1 text-gray-600" />
+                        <div className="text-sm font-semibold text-gray-900">{Math.round(weatherData.current.windSpeed)}</div>
+                        <div className="text-xs text-gray-600">Wind</div>
+                      </div>
+                      <div className="text-center p-3 bg-white/60 rounded-xl">
+                        <Sun className="w-5 h-5 mx-auto mb-1 text-orange-500" />
+                        <div className="text-sm font-semibold text-gray-900">{weatherData.current.uvIndex}</div>
+                        <div className="text-xs text-gray-600">UV Index</div>
+                      </div>
+                      <div className="text-center p-3 bg-white/60 rounded-xl">
+                        <EyeIcon className="w-5 h-5 mx-auto mb-1 text-blue-500" />
+                        <div className="text-sm font-semibold text-gray-900">{weatherData.current.visibility}</div>
+                        <div className="text-xs text-gray-600">Visibility</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Weather Alerts */}
+                  {weatherData.alerts && weatherData.alerts.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5" />
+                        Weather Alerts
+                      </h3>
+                      {weatherData.alerts.map((alert, index) => (
+                        <div key={index} className={`p-4 rounded-lg border ${getSeverityColor(alert.event)}`}>
+                          <div className="font-semibold text-sm">{alert.event}</div>
+                          <div className="text-sm mt-1">{alert.description}</div>
+                          <div className="text-xs mt-2 opacity-80">
+                            {formatTime(new Date(alert.start))} - {formatTime(new Date(alert.end))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Hourly Forecast - Compact Style */}
+                  {weatherData.hourly.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900">Hourly Forecast</h3>
+                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {weatherData.hourly.map((hour, index) => (
+                          <div key={index} className="flex-shrink-0 flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200/50 min-w-[60px]">
+                            <div className="text-xs text-gray-600 font-medium">{formatTime(new Date(hour.time))}</div>
+                            {getWeatherIcon(hour.icon, "w-6 h-6")}
+                            <div className="text-md font-semibold text-gray-900">{hour.temp}°</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Daily Forecast - Compact Style */}
+                  {weatherData.daily.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900">5-Day Forecast</h3>
+                      <div className="space-y-2">
+                        {weatherData.daily.slice(0, 5).map((day, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-3">
+                              {getWeatherIcon(day.icon, "w-5 h-5")}
+                              <span className="text-sm font-medium text-gray-800 w-20">{index === 0 ? 'Today' : formatDate(day.date)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-gray-600">{day.low}°</span>
+                              <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-blue-400 to-amber-400 rounded-full" style={{ width: `${((day.high - 20) / 15) * 100}%` }}></div>
+                              </div>
+                              <span className="font-semibold text-gray-900">{day.high}°</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-200">
+                    <div>Data from {weatherData.source}</div>
+                    <div>Last updated: {formatTime(new Date(weatherData.lastUpdated))}</div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <Cloud className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm font-medium text-gray-500">Weather unavailable</p>
+                    <p className="text-xs text-gray-400 mt-1">Please try again later</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1231,6 +1692,12 @@ export function DynamicModularHomepage() {
           </a>
         </div>
       </div>
+      
+      {/* CSS for scrollbar-hide */}
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   )
 }

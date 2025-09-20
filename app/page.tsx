@@ -21,8 +21,8 @@ export default function HomePage() {
       {/* V0.2 Dynamic Layout Homepage */}
       <DynamicModularHomepage />
 
-      {/* Sticky Action Bar */}
-      <StickyActionBar theme={theme} onThemeToggle={handleThemeChange} />
+      {/* Sticky Action Bar - Hidden */}
+      {/* <StickyActionBar theme={theme} onThemeToggle={handleThemeChange} /> */}
 
       {/* Floating Action Buttons */}
       <FloatingActionButtons theme={theme} />

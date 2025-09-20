@@ -384,16 +384,15 @@ export function SocialFeedWidget({ theme = "primary" }: SocialFeedWidgetProps) {
 
   return (
     <Card
-      className={`h-full transition-all duration-500 cursor-pointer widget-card glow-border ${
+      className={`h-full flex flex-col overflow-hidden transition-all duration-500 widget-card glow-border pointer-events-auto ${
         isPrimary
           ? "bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 border-pink-200 hover:shadow-xl hover:shadow-pink-200/50"
           : "bg-gradient-to-br from-purple-800 via-pink-800 to-red-800 border-pink-500/30 hover:shadow-xl hover:shadow-pink-500/30"
       }`}
-      onClick={handleViewAll}
     >
       {/* Global Sponsorship Banner */}
       <SponsorshipBanner widgetType="social" />
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex-shrink-0">
         <CardTitle
           className={`flex items-center justify-between text-lg ${isPrimary ? "text-pink-800" : "text-white"}`}
         >
@@ -435,7 +434,7 @@ export function SocialFeedWidget({ theme = "primary" }: SocialFeedWidgetProps) {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex flex-col flex-1 min-h-0 overflow-hidden pointer-events-auto">
         {/* AI Moderation Status */}
         <div className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
           <div className="flex items-center space-x-2">
@@ -448,7 +447,7 @@ export function SocialFeedWidget({ theme = "primary" }: SocialFeedWidgetProps) {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-2 mb-4" onClick={(e) => e.stopPropagation()}>
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <div
             className={`text-center p-2 rounded-lg ${
               isPrimary ? "bg-white/60" : "bg-purple-900/50"
@@ -485,8 +484,8 @@ export function SocialFeedWidget({ theme = "primary" }: SocialFeedWidgetProps) {
         </div>
 
         {/* Social Feed Posts */}
-        <div className="space-y-3 max-h-80 overflow-y-auto social-feed-scroll" onClick={(e) => e.stopPropagation()}>
-          {socialPosts.slice(0, 3).map((post) => (
+        <div className="space-y-3 flex-1 min-h-0 overflow-y-auto social-feed-scroll pointer-events-auto">
+          {socialPosts.map((post) => (
             <div
               key={post.id}
               className={`p-3 rounded-lg transition-all duration-300 ${
@@ -544,10 +543,8 @@ export function SocialFeedWidget({ theme = "primary" }: SocialFeedWidgetProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleViewAll()
-            }}
+            type="button"
+            onClick={() => handleViewAll()}
             className={`text-xs h-6 px-2 ${
               isPrimary
                 ? "text-pink-600 hover:text-pink-800 hover:bg-pink-100"

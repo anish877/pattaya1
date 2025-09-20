@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     filterParams.push(`pagination[pageSize]=${pageSize}`);
     filterParams.push('populate=*');
 
-    strapiUrl = ` http://localhost:1337/api/videos?${filterParams.join('&')}`;
+    strapiUrl = ` https://api.pattaya1.com/api/videos?${filterParams.join('&')}`;
 
     console.log('Fetching from Strapi:', strapiUrl);
 

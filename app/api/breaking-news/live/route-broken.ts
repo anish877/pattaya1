@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     
     try {
       // Fetch regular breaking news
-      const localApiUrl = ` http://localhost:1337/api/breaking-news/live`
+      const localApiUrl = ` https://api.pattaya1.com/api/breaking-news/live`
       console.log('Fetching breaking news from:', localApiUrl)
       const newsResponse = await fetch(localApiUrl, {
         headers: {
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       }
       
       // Fetch pinned news from Strapi backend
-      const pinnedApiUrl = ` http://localhost:1337/api/breaking-news-plural?populate=*&filters[isPinned][$eq]=true&sort=PublishedTimestamp:desc`
+      const pinnedApiUrl = ` https://api.pattaya1.com/api/breaking-news-plural?populate=*&filters[isPinned][$eq]=true&sort=PublishedTimestamp:desc`
       console.log('Fetching pinned news from:', pinnedApiUrl)
       const pinnedResponse = await fetch(pinnedApiUrl, {
         headers: {
@@ -188,7 +188,7 @@ export async function GET(request: Request) {
     // Create sponsored posts with proper sponsor names
     let sponsoredData = []
     try {
-      const localSponsoredUrl = ` http://localhost:1337/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
+      const localSponsoredUrl = ` https://api.pattaya1.com/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
       console.log('Fetching sponsored posts from:', localSponsoredUrl)
       const sponsoredResponse = await fetch(localSponsoredUrl, {
         headers: {
@@ -250,7 +250,7 @@ export async function GET(request: Request) {
     // Get pinned news separately from the fetch above
     let pinnedNewsFromApi = []
     try {
-      const pinnedApiUrl = ` http://localhost:1337/api/breaking-news-plural?populate=*&filters[isPinned][$eq]=true&sort=PublishedTimestamp:desc`
+      const pinnedApiUrl = ` https://api.pattaya1.com/api/breaking-news-plural?populate=*&filters[isPinned][$eq]=true&sort=PublishedTimestamp:desc`
       const pinnedResponse = await fetch(pinnedApiUrl, {
         headers: { 'Accept': 'application/json' },
         ...(process.env.NODE_ENV === 'development' && { agent: false })

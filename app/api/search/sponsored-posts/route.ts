@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch sponsored posts
-    const sponsoredResponse = await fetch(` http://localhost:1337/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`, {
+    const sponsoredResponse = await fetch(` https://api.pattaya1.com/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`, {
       headers: { 'Accept': 'application/json' }
     })
     

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   if (contentType === "flight-tracker" || query.toLowerCase().includes("flight") || /^[A-Z]{2}\d+$/.test(query.toUpperCase())) {
     try {
       // Search all flights from Strapi API
-      const flightResponse = await fetch(` http://localhost:1337/api/flight-trackers`)
+      const flightResponse = await fetch(` https://api.pattaya1.com/api/flight-trackers`)
       
       if (flightResponse.ok) {
         const flightData = await flightResponse.json()
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
   if (/^[A-Z]{3}$/.test(query.toUpperCase())) {
     try {
       const airportCode = query.toUpperCase()
-      const flightResponse = await fetch(` http://localhost:1337/api/flight-tracker/airports/${airportCode}`)
+      const flightResponse = await fetch(` https://api.pattaya1.com/api/flight-tracker/airports/${airportCode}`)
       
       if (flightResponse.ok) {
         const flightData = await flightResponse.json()

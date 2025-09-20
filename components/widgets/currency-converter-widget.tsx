@@ -931,6 +931,8 @@ export function CurrencyConverterWidget({ onCurrencySelect, showCharts = true, c
         className="h-full flex flex-col relative overflow-hidden rounded-2xl cursor-pointer group transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
         onClick={() => setShowExpandedModal(true)}
       >
+        {/* Global Sponsorship Banner */}
+        <SponsorshipBanner widgetType="currency-converter" />
         {/* Animated Background with Glassmorphism */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/20 via-transparent to-teal-100/20 backdrop-blur-3xl"></div>

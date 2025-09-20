@@ -655,6 +655,15 @@
   box-sizing: border-box;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* Specific widget sizing for the new layout */
 .widget-item.widget-small {
   min-height: 200px;

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     
     try {
       // Use real Strapi breaking-news/live endpoint
-      const localApiUrl = ` http://localhost:1337/api/breaking-news/live`
+      const localApiUrl = ` https://api.pattaya1.com/api/breaking-news/live`
       console.log('Fetching breaking news from:', localApiUrl)
       const newsResponse = await fetch(localApiUrl, {
         headers: {
@@ -136,7 +136,7 @@ export async function GET(request: Request) {
     // Create sponsored posts with proper sponsor names
     let sponsoredData = []
     try {
-      const localSponsoredUrl = ` http://localhost:1337/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
+      const localSponsoredUrl = ` https://api.pattaya1.com/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
       console.log('Fetching sponsored posts from:', localSponsoredUrl)
       const sponsoredResponse = await fetch(localSponsoredUrl, {
         headers: {
@@ -306,7 +306,7 @@ export async function GET(request: Request) {
 // Create sponsored posts with proper sponsor names
 let sponsoredData = []
 try {
-  const localSponsoredUrl = ` http://localhost:1337/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
+  const localSponsoredUrl = ` https://api.pattaya1.com/api/sponsored-posts?populate=*&filters[IsActive][$eq]=true`
   console.log('Fetching sponsored posts from:', localSponsoredUrl)
   const sponsoredResponse = await fetch(localSponsoredUrl, {
     headers: {

@@ -43,7 +43,7 @@ export function SponsorshipBanner({ widgetType, className = "" }: SponsorshipBan
       setLoading(true)
       
       // Fetch all sponsorships and filter on frontend
-      const response = await fetch(`${buildApiUrl('')}/global-sponsorships?sort=createdAt:desc&populate=*`)
+      const response = await fetch(buildApiUrl('global-sponsorships?sort=createdAt:desc&populate=*'))
       
       if (response.ok) {
         const data = await response.json()

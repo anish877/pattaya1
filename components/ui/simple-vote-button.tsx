@@ -11,9 +11,10 @@ interface SimpleVoteButtonProps {
     voteScore: number;
     userVote: string | null;
   }) => void;
+  compact?: boolean;
 }
 
-export function SimpleVoteButton({ article, onVoteUpdate }: SimpleVoteButtonProps) {
+export function SimpleVoteButton({ article, onVoteUpdate, compact = false }: SimpleVoteButtonProps) {
   const [isVoting, setIsVoting] = useState(false);
   const [localVotes, setLocalVotes] = useState({
     upvotes: article.upvotes || 0,
@@ -81,7 +82,7 @@ export function SimpleVoteButton({ article, onVoteUpdate }: SimpleVoteButtonProp
     setIsVoting(true);
     
     try {
-      const response = await fetch(` http://localhost:1337/api/breaking-news/${articleId}/${voteType}`, {
+      const response = await fetch(` https://api.pattaya1.com/api/breaking-news/${articleId}/${voteType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export function SimpleVoteButton({ article, onVoteUpdate }: SimpleVoteButtonProp
   };
 
   return (
-    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+    <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`} onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="sm"
@@ -136,14 +137,14 @@ export function SimpleVoteButton({ article, onVoteUpdate }: SimpleVoteButtonProp
           handleVote('upvote');
         }}
         disabled={isVoting}
-        className={`h-6 w-auto px-2 text-xs transition-all duration-200 hover:scale-105 ${
+        className={`${compact ? 'h-5 w-auto px-1.5 text-xs' : 'h-6 w-auto px-2 text-xs'} transition-all duration-200 hover:scale-105 ${
           localVotes.userVote === 'upvote' 
             ? 'bg-green-100 text-green-700 border-green-300' 
             : 'hover:bg-green-50 hover:text-green-600'
         } ${isVoting ? 'opacity-60 cursor-not-allowed animate-pulse' : ''}`}
       >
-        <span className="text-base">👍</span>
-        <span className="font-bold ml-1 min-w-[20px] text-center">{localVotes.upvotes}</span>
+        <span className={compact ? 'text-sm' : 'text-base'}>👍</span>
+        <span className={`font-bold ${compact ? 'ml-0.5 min-w-[16px]' : 'ml-1 min-w-[20px]'} text-center`}>{localVotes.upvotes}</span>
       </Button>
       
       <Button
@@ -154,14 +155,14 @@ export function SimpleVoteButton({ article, onVoteUpdate }: SimpleVoteButtonProp
           handleVote('downvote');
         }}
         disabled={isVoting}
-        className={`h-6 w-auto px-2 text-xs transition-all duration-200 hover:scale-105 ${
+        className={`${compact ? 'h-5 w-auto px-1.5 text-xs' : 'h-6 w-auto px-2 text-xs'} transition-all duration-200 hover:scale-105 ${
           localVotes.userVote === 'downvote' 
             ? 'bg-red-100 text-red-700 border-red-300' 
             : 'hover:bg-red-50 hover:text-red-600'
         } ${isVoting ? 'opacity-60 cursor-not-allowed animate-pulse' : ''}`}
       >
-        <span className="text-base">👎</span>
-        <span className="font-bold ml-1 min-w-[20px] text-center">{localVotes.downvotes}</span>
+        <span className={compact ? 'text-sm' : 'text-base'}>👎</span>
+        <span className={`font-bold ${compact ? 'ml-0.5 min-w-[16px]' : 'ml-1 min-w-[20px]'} text-center`}>{localVotes.downvotes}</span>
       </Button>
     </div>
   );

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch breaking news data
-    const newsResponse = await fetch(` http://localhost:1337/api/breaking-news-plural?populate=*&sort=PublishedTimestamp:desc&pagination[limit]=100`, {
+    const newsResponse = await fetch(` https://api.pattaya1.com/api/breaking-news-plural?populate=*&sort=PublishedTimestamp:desc&pagination[limit]=100`, {
       headers: { 'Accept': 'application/json' }
     })
     
